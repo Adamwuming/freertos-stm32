@@ -139,8 +139,9 @@ int CreateTCPConnect(char *srv, int port)
 	if (error == 0)
 	{
 		error = getsockname(sockfd, (struct sockaddr *)&servaddr, &len);
-		if (error  >= 0)		
-			return sockfd;
+	//	if (error  >= 0)
+	//		printf("Server %s connected, local port %d\n", srv, ntohs(servaddr.sin_port));		
+		return sockfd;
 	}
 	else return error;
 }
