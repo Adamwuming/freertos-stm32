@@ -1,5 +1,5 @@
 # ZE_FreeRTOS_SDK `[freeRTOS V8.2.1+LwIp]`
-采用Eclipse Paho MQTT C/C++ Client，兼容[V3.1 MQTT协议](http://mqtt.org/documentation)和[V3.1.1 MQTT协议](http://mqtt.org/documentation)。
+采用Eclipse Paho MQTT C/C++ Client，兼容[V3.1 MQTT协议](http://mqtt.org/documentation)和[V3.1.1 MQTT协议](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html)。
 
 集成cJson包。
 
@@ -28,6 +28,7 @@
     - Network loop
     - Publishing
     - Subscribe / Unsubscribe
+- cJson
 - Reporting bugs
 - More information
 
@@ -70,15 +71,6 @@ struct Network
 	void (*disconnect) (Network*);
 };
 ```
-``Network``构造函数包含以下几个参数：
-
-`my_socket`
-
-`*mqttread`
-
-`*mqttwrite`
-
-`*disconnect`
 
 ###### Client
 ```c
@@ -104,7 +96,7 @@ struct Client {
     Timer ping_timer;
 };
 ```
-``Client``构造函数包含以下几个参数：
+
 ###### MQTTPacket_connectData
 ```c
 typedef struct
@@ -113,8 +105,7 @@ typedef struct
 	char struct_id[4];
 	/** The version number of this structure.  Must be 0 */
 	int struct_version;
-	/** Version of MQTT to be used.  3 = 3.1 4 = 3.1.1
-	  */
+	/** Version of MQTT to be used.  3 = 3.1 4 = 3.1.1 */
 	unsigned char MQTTVersion;
 	MQTTString clientID;
 	unsigned short keepAliveInterval;
@@ -134,7 +125,6 @@ struct MessageData
     MQTTString* topicName;
 };
 ```
-``MessageData``构造函数包含以下几个参数：
 
 ###### MQTTMessage
 ```c
@@ -148,46 +138,52 @@ struct MQTTMessage
     size_t payloadlen;
 };
 ```
-``MQTTMessage``构造函数包含以下几个参数：
 
 ##### NewNetwork / ConnectNetwork / MQTTConnect / MQTTDisconnect
 ###### NewNetwork()
+准备paho库所需要调用的操作系统API接口。
 ```c
 void NewNetwork(Network* n)
 ```
+
 ###### ConnectNetwork()
+创建TCP端口，并连接到指定的服务器。
 ```c
 int ConnectNetwork(Network* n, char* addr, int port)
 ```
+
 ###### MQTTConnect()
+执行MQTT连接操作。
 ```c
 int MQTTConnect(Client* c, MQTTPacket_connectData* options)
 ```
+
 ###### MQTTDisconnect
+执行MQTT的断开操作。注意：在连接断开后，需另外执行close(handle)操作。
 ```c
 int MQTTDisconnect(Client* c)
 ```
+
 ##### Network loop
 ###### MQTTYield
+循环指定时间，进行MQTT勤务操作。主循环应定期频繁调用该函数。
 ```c
 int MQTTYield(Client* c, int timeout_ms)
 ```
 
 ##### Publishing
 ###### MQTTPublish
+向指定topic发送数据。MQTTMessage是C++语言风格的字符串，可以包含任意ASCII字符（包括字符0），但是必须显式给出字符串的长度。库函数已经妥善封装，以保证数据包ID的自增。
 ```c
 int MQTTPublish(Client* c, const char* topicName, MQTTMessage* message)
 ```
 
 ##### Subscribe
 ###### MQTTSubscribe
+执行MQTT订阅操作。当收到相应的订阅内容的时候，messageHandle将被调用。注意：在本实现中，每个MQTTAgent最多只能订阅MAX_MESSAGE_HANDLERS个主题。
 ```c
 int MQTTSubscribe(Client* c, const char* topicFilter, enum QoS qos, messageHandler messageHandler)
 ```
 
-- TCPClt：#174 - #218是主循环，实际是一个线程的执行函数，NewNetwork完成适配，ConnectNetwork检查TCP/IP栈是否就需并实施TCPIP连接，MQTTClient为MQTT连接准备空间（此处使用静态变量），MQTTConnect完成MQTT服务器登录，MQTTSubscribe注册感兴趣的话题（下行命令接收）,PublishLED实际通过MQTTPublish发送数据包，MQTTYield需要经常性调用以完成MQTT事务操作（例如检查是否有数据包等待处理，数据包的回应，KeepAlive的处理等）。MQTTDisconnect释放MQTT连接
-- PublishLED是一个使用JSON格式封装数据并发送的函数;
-- messageArrived供回调。当收到数据包以后，本函数被调用。这儿示范了一个对JSON解包的过程（并没有根据最新的格式调整），仅供参考;
-- #10-#28 包括了常量定义。实际使用中，需要把相关ID和Token改为从网站上申请的数据。缓冲区也在此定义，请根据实际使用大小调整，以免溢出;
-- JSON相关函数从堆中申请内存，请保证堆中有充足空间。
-
+### cJson
+cJSON库，具体使用请参见[cJSON](https://github.com/DaveGamble/cJSON)库主页。
