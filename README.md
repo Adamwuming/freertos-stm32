@@ -1,4 +1,12 @@
 # ZE_FreeRTOS_SDK `[freeRTOS V8.2.1+LwIp]`
+## 库目录说明：
+SDK: ``\ZE_FreeRTOS_SDK\Inc`` ``\ZE_FreeRTOS_SDK\Src``
+
+Sample: ``\ZE_FreeRTOS_SDK\Sample\mywork.c`` ``\ZE_FreeRTOS_SDK\Sample\mywork说明.docx`` 
+
+Object: ``\ZE_FreeRTOS_SDK\Sample\STM32实例`` 
+
+## 介绍
 采用Eclipse Paho MQTT C/C++ Client，兼容[V3.1 MQTT协议](http://mqtt.org/documentation)和[V3.1.1 MQTT协议](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html)。
 
 集成cJson包。
@@ -19,7 +27,7 @@
    >- MDK V5.14
    >- 硬件环境：STM32F407，RMII口连接DP83846PHY
 
-## 目录
+## 文档目录
 - Installation
 - Usage and API
     - Getting Started
