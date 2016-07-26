@@ -164,7 +164,6 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name></Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -184,7 +183,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>JL2CM3</Key>
-          <Name>-U304439649 -O78 -S2 -ZTIFSpeedSel5000 -A0 -C0 -JU1 -JI127.0.0.1 -JP0 -RST0 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(4) -TO19 -TC120000000 -TP21 -TDS8013 -TDT0 -TDC1F -TIE1 -TIP0 -TB1 -TFE0 -FO15 -FD20000000 -FC1000 -FN1 -FF0STM32F4xx_1024.FLM -FS08000000 -FL0100000 -FP0($$Device:STM32F407VGTx$CMSIS\Flash\STM32F4xx_1024.FLM)</Name>
+          <Name>-U99999993 -O78 -S2 -ZTIFSpeedSel5000 -A0 -C0 -JU1 -JI127.0.0.1 -JP0 -RST0 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(4) -TO19 -TC120000000 -TP21 -TDS8013 -TDT0 -TDC1F -TIE1 -TIP0 -TB1 -TFE0 -FO15 -FD20000000 -FC1000 -FN1 -FF0STM32F4xx_1024.FLM -FS08000000 -FL0100000 -FP0($$Device:STM32F407VGTx$CMSIS\Flash\STM32F4xx_1024.FLM)</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -203,32 +202,16 @@
           <Type>0</Type>
           <LineNumber>413</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134270908</Address>
+          <Address>134301728</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\蹇洏\1-Jobs\ZenIn\SH_2015\Protocol-In The Road\C\STM32Study\STM32F407-DHT11\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.c</Filename>
+          <Filename>../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/port.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\StartUp3_PV\../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/port.c\413</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>401</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134234118</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\蹇洏\1-Jobs\ZenIn\SH_2015\Protocol-In The Road\C\STM32Study\STM32F407-DHT11\Src\main.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\StartUp3_PV\../Src/main.c\401</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -319,7 +302,7 @@
         <aLa>0</aLa>
         <aPa1>0</aPa1>
         <AscS4>0</AscS4>
-        <aSer4>1</aSer4>
+        <aSer4>0</aSer4>
         <StkLoc>1</StkLoc>
         <TrcWin>0</TrcWin>
         <newCpu>0</newCpu>
@@ -436,8 +419,8 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\mySrc\stMisc.c</PathWithFileName>
-      <FilenameWithoutPath>stMisc.c</FilenameWithoutPath>
+      <PathWithFileName>..\Src\stDHT11.c</PathWithFileName>
+      <FilenameWithoutPath>stDHT11.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -449,8 +432,8 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\mySrc\stDHT11.c</PathWithFileName>
-      <FilenameWithoutPath>stDHT11.c</FilenameWithoutPath>
+      <PathWithFileName>..\Src\stFlash.c</PathWithFileName>
+      <FilenameWithoutPath>stFlash.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -462,8 +445,8 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\mySrc\stWork.c</PathWithFileName>
-      <FilenameWithoutPath>stWork.c</FilenameWithoutPath>
+      <PathWithFileName>..\Src\stMisc.c</PathWithFileName>
+      <FilenameWithoutPath>stMisc.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -475,8 +458,8 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\mySrc\stFlash.c</PathWithFileName>
-      <FilenameWithoutPath>stFlash.c</FilenameWithoutPath>
+      <PathWithFileName>..\Src\stWork.c</PathWithFileName>
+      <FilenameWithoutPath>stWork.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -1595,7 +1578,7 @@
 
   <Group>
     <GroupName>Drivers/CMSIS</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1616,7 +1599,7 @@
 
   <Group>
     <GroupName>Middlewares/Mqtt</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1628,7 +1611,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\cJSON.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\cJSON.c</PathWithFileName>
       <FilenameWithoutPath>cJSON.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1641,7 +1624,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\j1stio.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\j1stio.c</PathWithFileName>
       <FilenameWithoutPath>j1stio.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1654,7 +1637,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTClient.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTClient.c</PathWithFileName>
       <FilenameWithoutPath>MQTTClient.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1667,7 +1650,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTConnectClient.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTConnectClient.c</PathWithFileName>
       <FilenameWithoutPath>MQTTConnectClient.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1680,7 +1663,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTConnectServer.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTConnectServer.c</PathWithFileName>
       <FilenameWithoutPath>MQTTConnectServer.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1693,7 +1676,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTDeserializePublish.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTDeserializePublish.c</PathWithFileName>
       <FilenameWithoutPath>MQTTDeserializePublish.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1706,7 +1689,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTFormat.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTFormat.c</PathWithFileName>
       <FilenameWithoutPath>MQTTFormat.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1719,7 +1702,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTPacket.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTPacket.c</PathWithFileName>
       <FilenameWithoutPath>MQTTPacket.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1732,7 +1715,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTSerializePublish.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTSerializePublish.c</PathWithFileName>
       <FilenameWithoutPath>MQTTSerializePublish.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1745,7 +1728,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTSubscribeClient.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTSubscribeClient.c</PathWithFileName>
       <FilenameWithoutPath>MQTTSubscribeClient.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1758,7 +1741,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTSubscribeServer.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTSubscribeServer.c</PathWithFileName>
       <FilenameWithoutPath>MQTTSubscribeServer.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1771,7 +1754,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTUnsubscribeClient.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTUnsubscribeClient.c</PathWithFileName>
       <FilenameWithoutPath>MQTTUnsubscribeClient.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1784,7 +1767,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Middlewares\myMiddewares\MQTT\Src\MQTTUnsubscribeServer.c</PathWithFileName>
+      <PathWithFileName>..\Middlewares\MQTT\Src\MQTTUnsubscribeServer.c</PathWithFileName>
       <FilenameWithoutPath>MQTTUnsubscribeServer.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>

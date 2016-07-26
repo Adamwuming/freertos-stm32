@@ -369,7 +369,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;   ../Middlewares/Third_Party/LwIP/system;   ../Middlewares/Third_Party/LwIP/src/include;   ../Middlewares/Third_Party/LwIP/src/include/ipv4;   ../Drivers/STM32F4xx_HAL_Driver/Inc;   ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;   ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;   ../Middlewares/Third_Party/FreeRTOS/Source/include;   ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;   ../Middlewares/Third_Party/LwIP/system/arch;   ../Middlewares/Third_Party/LwIP/src/include/ipv4/lwip;   ../Middlewares/Third_Party/LwIP/src/include/lwip;   ../Middlewares/Third_Party/LwIP/src/include/netif;   ../Middlewares/Third_Party/LwIP/src/include/posix;   ../Middlewares/Third_Party/LwIP/src/include/posix/sys;   ../Middlewares/Third_Party/LwIP/src/netif/ppp;   ../Drivers/CMSIS/Include;   ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;   ../Middlewares/myMiddewares/MQTT/Inc;   ../Inc/myInc</IncludePath>
+              <IncludePath>../Inc;../Middlewares/Third_Party/LwIP/system;../Middlewares/Third_Party/LwIP/src/include;../Middlewares/Third_Party/LwIP/src/include/ipv4;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/LwIP/system/arch;../Middlewares/Third_Party/LwIP/src/include/ipv4/lwip;../Middlewares/Third_Party/LwIP/src/include/lwip;../Middlewares/Third_Party/LwIP/src/include/netif;../Middlewares/Third_Party/LwIP/src/include/posix;../Middlewares/Third_Party/LwIP/src/include/posix/sys;../Middlewares/Third_Party/LwIP/src/netif/ppp;../Drivers/CMSIS/Include;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Middlewares/MQTT/Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -448,24 +448,24 @@
               <FilePath>../Src/lwip.c</FilePath>
             </File>
             <File>
-              <FileName>stMisc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\mySrc\stMisc.c</FilePath>
-            </File>
-            <File>
               <FileName>stDHT11.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\mySrc\stDHT11.c</FilePath>
-            </File>
-            <File>
-              <FileName>stWork.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\mySrc\stWork.c</FilePath>
+              <FilePath>..\Src\stDHT11.c</FilePath>
             </File>
             <File>
               <FileName>stFlash.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\mySrc\stFlash.c</FilePath>
+              <FilePath>..\Src\stFlash.c</FilePath>
+            </File>
+            <File>
+              <FileName>stMisc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\stMisc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stWork.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\stWork.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -920,67 +920,67 @@
             <File>
               <FileName>cJSON.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\cJSON.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\cJSON.c</FilePath>
             </File>
             <File>
               <FileName>j1stio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\j1stio.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\j1stio.c</FilePath>
             </File>
             <File>
               <FileName>MQTTClient.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTClient.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTClient.c</FilePath>
             </File>
             <File>
               <FileName>MQTTConnectClient.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTConnectClient.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTConnectClient.c</FilePath>
             </File>
             <File>
               <FileName>MQTTConnectServer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTConnectServer.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTConnectServer.c</FilePath>
             </File>
             <File>
               <FileName>MQTTDeserializePublish.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTDeserializePublish.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTDeserializePublish.c</FilePath>
             </File>
             <File>
               <FileName>MQTTFormat.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTFormat.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTFormat.c</FilePath>
             </File>
             <File>
               <FileName>MQTTPacket.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTPacket.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTPacket.c</FilePath>
             </File>
             <File>
               <FileName>MQTTSerializePublish.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTSerializePublish.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTSerializePublish.c</FilePath>
             </File>
             <File>
               <FileName>MQTTSubscribeClient.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTSubscribeClient.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTSubscribeClient.c</FilePath>
             </File>
             <File>
               <FileName>MQTTSubscribeServer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTSubscribeServer.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTSubscribeServer.c</FilePath>
             </File>
             <File>
               <FileName>MQTTUnsubscribeClient.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTUnsubscribeClient.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTUnsubscribeClient.c</FilePath>
             </File>
             <File>
               <FileName>MQTTUnsubscribeServer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\myMiddewares\MQTT\Src\MQTTUnsubscribeServer.c</FilePath>
+              <FilePath>..\Middlewares\MQTT\Src\MQTTUnsubscribeServer.c</FilePath>
             </File>
           </Files>
         </Group>

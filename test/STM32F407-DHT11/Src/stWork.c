@@ -3,6 +3,7 @@
 #include "cJSON.h"
 #include "MQTTClient.h"
 #include "utask.h"
+#include "stFlash.h"
 
 /*mqtt client*/
 #define BUFSIZE		800
@@ -165,6 +166,7 @@ void messageArrived(MessageData* md)
 void MQTTWork(void *argu)
 {
     int rc, delayS=1;
+		uint8_t *a=0;
     UNUSED(argu);
 
     SetParas();

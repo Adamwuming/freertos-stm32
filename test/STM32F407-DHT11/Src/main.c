@@ -71,8 +71,8 @@ void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
-
+extern void HAL_CalTick(void);
+extern void SPI_Flash_WAKEUP(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -105,6 +105,7 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 	HAL_CalTick();
+	SPI_Flash_WAKEUP();
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -394,13 +395,7 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
 
   /* USER CODE BEGIN 5 */
-	uint32_t DeviceID, FlashID;
-	
-	DeviceID = SPI_FLASH_ReadDeviceID();
-	osDelay(10);
-	FlashID = SPI_FLASH_ReadID();
-	
-	printf("FlashID is 0x%X,  Manufacturer Device ID is 0x%X\n", FlashID, DeviceID);
+
   /* Infinite loop */
   for(;;)
   {

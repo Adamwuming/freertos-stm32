@@ -34,8 +34,4 @@ extern struct DHT11 gDHT[100];
 extern void wDHT(int pickTime, int pickTem, int pickHum);
 extern void initDHT(int i);
 
-/*spi-flash*/
-extern uint32_t SPI_FLASH_ReadID(void);
-extern uint32_t SPI_FLASH_ReadDeviceID(void);
-
 #endif
