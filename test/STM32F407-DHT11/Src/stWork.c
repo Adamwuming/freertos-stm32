@@ -3,7 +3,6 @@
 #include "cJSON.h"
 #include "MQTTClient.h"
 #include "utask.h"
-#include "stFlash.h"
 
 /*mqtt client*/
 #define BUFSIZE		800
@@ -55,7 +54,7 @@ int PublishData(jNet *pJnet, int upstreamId)
 		break;
 				
 		case 1:		
-		for(i=0;i<100;i++){
+		for(i=0;i<2;i++){
 			p=gDHT+i;
 			if((*p).pickTime==0) break;
 			else{
@@ -81,6 +80,8 @@ int PublishData(jNet *pJnet, int upstreamId)
 					initDHT(i);
 					printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
 				}
+				else  if(i == 0) WriteDHTFlash((uint8_t *)p);
+				
 				free(out);
 			}
 		}

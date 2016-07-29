@@ -18,11 +18,13 @@ extern UART_HandleTypeDef huart3;
 extern void HAL_CalTick(void);
 extern void HAL_DelayUs(int nDelay);
 
+extern unsigned int BitHign_Count(unsigned char *v, int size);
+extern unsigned int BitLow_Count(unsigned char *v, int size);
 extern void LED_On(int Led);
 extern void LED_Off(int Led);
 extern void LED_Toggle(int Led);
 
-/*DHT11*/
+/*DHT11 12byte*/
 struct DHT11
 {
 	int pickTem;		//Temperature integer part
@@ -30,8 +32,19 @@ struct DHT11
 	int pickTime;
 	
 };
-extern struct DHT11 gDHT[100];
+/*42byte offset = 341 * DHT_DATA_BYTE_SIZE = 4KB data */
+#define DHT_Flash_Base_Addr						0
+#define DHT_Flash_Write_Offset_Addr		0x002A00
+#define DHT_Flash_Read_Offset_Addr		0x002B00
+#define DHT_DATA_BYTE_SIZE 						(3*4)
+
+extern struct DHT11 gDHT[2];
 extern void wDHT(int pickTime, int pickTem, int pickHum);
 extern void initDHT(int i);
+extern unsigned int getAddrOffset(unsigned int addr);
+extern int modifyAddrOffset(unsigned int addr);
+extern int WriteDHTFlash(unsigned char *buffer);
+extern int ReadDHTFlash(void);
+
 
 #endif

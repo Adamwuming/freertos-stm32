@@ -57,12 +57,44 @@ void HAL_DelayUs(int nDelay)
 	}
 }
 
-
 void PrintHex(char *s, unsigned char *buffer, int num)
 {
 	for (int i=0; i<num; i++)
 		sprintf(s + 3*i, "%02x ", *(buffer+i));
 }
+
+unsigned int BitHign_Count(unsigned char *v, int size)
+{
+    unsigned int num=0;
+		int i=size-1 ;
+
+		for(; i>=0; i--)
+		{	
+			for (; *(v+i); num++)
+			{
+					*(v+i) &= *(v+i) - 1;
+			}
+		}
+    
+    return num;
+}
+
+unsigned int BitLow_Count(unsigned char *v, int size)
+{
+    unsigned int num=0;
+		int i=size-1 ;
+
+		for(; i>=0; i--)
+		{	
+			for (; *(v+i); num++)
+			{
+					*(v+i) &= *(v+i) - 1;
+			}
+		}
+    
+    return (8*size - num);
+}
+
 
 void LED_On(int Led)
 {
