@@ -129,38 +129,3 @@ void LED_Toggle(int Led)
 	}
 }
 
-//void MyTimerEnable(TIM_HandleTypeDef *htim)
-//{
-//	__HAL_TIM_CLEAR_IT(htim, TIM_IT_UPDATE);
-//	__HAL_TIM_ENABLE_IT(htim, TIM_IT_UPDATE);
-//	__HAL_TIM_SetCounter(htim, 0);
-//	__HAL_TIM_ENABLE(htim);
-//}
-
-//void MyTimerDisable(TIM_HandleTypeDef *htim)
-//{
-//	__HAL_TIM_DISABLE(htim);
-//	__HAL_TIM_SetCounter(htim, 0);
-//	__HAL_TIM_DISABLE_IT(htim, TIM_IT_UPDATE);
-//	__HAL_TIM_CLEAR_IT(htim, TIM_IT_UPDATE);
-//}
-
-//void HAL_TIM_UART_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-//{
-//	static portBASE_TYPE xHigherPriorityTaskWoken; 
-//	MyTimerDisable(htim);
-//	xHigherPriorityTaskWoken = pdFALSE; 
-//	xSemaphoreGiveFromISR(recFlagHandle, &xHigherPriorityTaskWoken);	
-//}
-
-//void UART3RxIRQ(void)
-//{
-//	uint8_t	ch;
-//	HAL_UART_Receive(&huart3, &ch, 1, 1);
-//	UART3_RxBuf[UART3_RxBuf_Index] = ch;
-//	UART3_RxBuf_Index++;
-//	if(UART3_RxBuf_Index>(UART3_RX_BUF_SIZE-1))	
-//		UART3_RxBuf_Index=(UART3_RX_BUF_SIZE-1);
-//	MyTimerEnable(&htim7);
-//}
-

@@ -135,7 +135,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  xPubQueue = xQueueCreate(1, sizeof(short));
+  xPubQueue = xQueueCreate(2, sizeof(short));	// 2 type PublishData json
   /* USER CODE END RTOS_QUEUES */
  
 
@@ -396,16 +396,12 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
 
   /* USER CODE BEGIN 5 */
-	//extern struct DHT11 *Flash_Rx_Buffer_Point;
 	
   /* Infinite loop */
   for(;;)
   {
 	  LED_Toggle(1);
-	  osDelay(10000);
-		//ReadDHTFlash();
-		//SPI_FLASH_BufferRead((uint8_t *)Flash_Rx_Buffer_Point, 0x24, DHT_DATA_BYTE_SIZE);
-		//printf("Flash_Rx_Buffer: %d %d %d\n", (*Flash_Rx_Buffer_Point).pickTime, (*Flash_Rx_Buffer_Point).pickTem, (*Flash_Rx_Buffer_Point).pickHum);
+	  osDelay(1000);
 	}
   /* USER CODE END 5 */ 
 }

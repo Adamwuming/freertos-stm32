@@ -21,7 +21,7 @@
 
 extern int jNetSubscribeT(jNet *, const char *, enum QoS, messageHandler);
 
-int gEInterval=300, gFinish=0, dtimeTickstart=0;
+int gEInterval=300, gFinish=0, gConnect=0;
 int gPort=DEFAULTPORT;
 char gHost[MAXFILENAME+1];
 char gAgent[MAXFILENAME+1], gToken[MAXFILENAME+1];
@@ -29,68 +29,91 @@ char gTopicUp[MAXFILENAME+1], gTopicDown[MAXFILENAME+1];
 
 int PublishData(jNet *pJnet, int upstreamId)
 {
-    int rc=-1, i, deltaTime;
-		struct DHT11 *p;
+    int rc=-1, deltaTime;
 		cJSON *root, *son1, *son2;
 		char *out;
-		
+	
 		switch(upstreamId){
 		case 0:
-		root = cJSON_CreateArray();
+			root = cJSON_CreateArray();
+			
+			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
+			cJSON_AddStringToObject(son1, "hwid", gAgent);
+			cJSON_AddStringToObject(son1, "type", "AGENT");
+			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
+			cJSON_AddNumberToObject(son2, "interval", gEInterval);
+			
+			out=cJSON_PrintUnformatted(root);
+			cJSON_Delete(root);
+
+			rc = jNetPublishT(pJnet, gTopicUp, out);
+			free(out);
+			if(rc == 0)
+				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+			break;
+				
+		case 1:
+			root = cJSON_CreateArray();
+			
+			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
+			cJSON_AddStringToObject(son1, "hwid", gAgent);
+			cJSON_AddStringToObject(son1, "type", "AGENT");
+			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
+			cJSON_AddNumberToObject(son2, "Tem", gDHT->pickTem);
+			cJSON_AddNumberToObject(son2, "Hem", gDHT->pickHum);
+			
+			out=cJSON_PrintUnformatted(root);
+			cJSON_Delete(root);
+
+			rc = jNetPublishT(pJnet, gTopicUp, out);
+			free(out);
 		
-		cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-		cJSON_AddStringToObject(son1, "hwid", gAgent);
-		cJSON_AddStringToObject(son1, "type", "AGENT");
-		cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
-		cJSON_AddNumberToObject(son2, "interval", gEInterval);
-		
-		out=cJSON_PrintUnformatted(root);
-		cJSON_Delete(root);
-
-		rc = jNetPublishT(pJnet, gTopicUp, out);
-		if(rc == 0)
-		printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
-		free(out);
-		break;
-				
-		case 1:		
-		for(i=0;i<2;i++){
-			p=gDHT+i;
-			if((*p).pickTime==0) break;
-			else{
-				deltaTime = (HAL_GetTick() - gDHT[i].pickTime)/1000;
-				printf("Publishing i: %d\n", i);
-
-				root = cJSON_CreateArray();
-				
-				cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-				cJSON_AddStringToObject(son1, "hwid", gAgent);
-				cJSON_AddStringToObject(son1, "type", "AGENT");
-				if( deltaTime> gEInterval )
-					cJSON_AddNumberToObject(son1, "dtime", deltaTime);
-				cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
-				cJSON_AddNumberToObject(son2, "Tem", gDHT[i].pickTem);
-				cJSON_AddNumberToObject(son2, "Hem", gDHT[i].pickHum);
-				
-				out=cJSON_PrintUnformatted(root);
-				cJSON_Delete(root);
-
-				rc = jNetPublishT(pJnet, gTopicUp, out);
-				if(rc == 0){
-					initDHT(i);
-					printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
-				}
-				else  if(i == 0) WriteDHTFlash((uint8_t *)p);
-				
-				free(out);
+			if(rc == 0)
+				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+			else  
+			{
+				WriteDHTFlash((uint8_t *)gDHT);
+				initDHT();
 			}
-		}
-		break;
+			break;
+			
+			case 2:	
+				while(!ReadDHTFlash((uint8_t *)gDHT))
+				{
+					deltaTime = (HAL_GetTick() - gDHT->pickTime)/1000;
+					root = cJSON_CreateArray();
+					
+					cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
+					cJSON_AddStringToObject(son1, "hwid", gAgent);
+					cJSON_AddStringToObject(son1, "type", "AGENT");
+					if( deltaTime> gEInterval )
+						cJSON_AddNumberToObject(son1, "dtime", deltaTime);
+					cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
+					cJSON_AddNumberToObject(son2, "Tem", gDHT->pickTem);
+					cJSON_AddNumberToObject(son2, "Hem", gDHT->pickHum);
+					
+					out=cJSON_PrintUnformatted(root);
+					cJSON_Delete(root);
 
+					rc = jNetPublishT(pJnet, gTopicUp, out);
+					free(out);
+					if(rc == 0){
+						printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+						modifyAddrOffset(DHT_Flash_Read_Offset_Addr);
+					}
+					else
+					{
+						initDHT();
+						break;
+					}
+				}
+				rc=0;
+				break;
 		}
+	
+	printf("rc: %d\n", rc);
 	return rc;
 }
-
 
 void SetParas(void)
 {
@@ -167,7 +190,7 @@ void messageArrived(MessageData* md)
 void MQTTWork(void *argu)
 {
     int rc, delayS=1;
-		uint8_t *a=0;
+	  short sock=2;
     UNUSED(argu);
 
     SetParas();
@@ -181,17 +204,19 @@ void MQTTWork(void *argu)
 	
     while(!gFinish)
     {
-        rc = jNetConnect(pJnet, gHost, gPort, gAgent, gToken);
-        if (rc != 0 ) 
+				rc = jNetConnect(pJnet, gHost, gPort, gAgent, gToken);
+        if (rc != 0 )
 				{
 					/*rc: No IP address or stack not ready = -1, OKDONE = 0 , AGENT_ID & AGENT_TOKEN is authorized = 5*/
-					printf("Cannot connect to :%s, sock: %d. Waiting for %d seconds and retry.\n", gHost, rc, delayS);
+					printf("Cannot connect to :%s, rc: %d. Waiting for %d seconds and retry.\n", gHost, rc, delayS);
 					osDelay(delayS*1000);
 					delayS *= 2;
 					if(delayS > 30) delayS = 30;
 					continue;
 				}
         delayS = 1;
+				gConnect = 1;
+				xQueueSendToBack(xPubQueue, &sock, 0);
         printf("Connect to J1ST.IO server %s:%d succeeded.\n", gHost, gPort);
     
         rc = jNetSubscribeT(pJnet, gTopicDown, QOS2, messageArrived);
@@ -212,38 +237,12 @@ void MQTTWork(void *argu)
             rc = jNetYield(pJnet);
             if (rc < 0) break;
         }  while (!gFinish);
-        printf("Stopping...\n");
         /* Cleanup */
-clean:
+		clean:
+				gConnect=0;
         jNetDisconnect(pJnet);
+				printf("Connection stopped.\n");
     }
     jNetFree(pJnet);        
 }
-
-//void StartPacketsProcess(void * argument)
-//{
-//  /* USER CODE BEGIN StartPacketsProcess */
-//	memset(UART3_RxBuf, 0, strlen(UART3_RxBuf));
-//  /* Infinite loop */
-//  for(;;)
-//  {
-//    xSemaphoreTake(recFlagHandle, portMAX_DELAY ); 
-//		HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_8);
-//		UART3_RxBuf[UART3_RxBuf_Index] = 0;
-//		cJSON * msg = cJSON_Parse(UART3_RxBuf);
-//		cJSON *fnId = cJSON_GetObjectItem(msg,"fnId");
-//		cJSON *type = cJSON_GetObjectItem(msg,"type");
-//		cJSON *hwid = cJSON_GetObjectItem(msg,"hwid");
-//	if (hwid != NULL)
-//	{
-//		char 	*hwid_ch = hwid->valuestring;
-//		HAL_UART_Transmit_DMA(&huart3, (uint8_t *)hwid_ch, strlen(hwid_ch));
-//	}
-//		else HAL_UART_Transmit_DMA(&huart3, (uint8_t *)UART3_RxBuf, strlen(UART3_RxBuf));
-//		osDelay(1);
-//		cJSON_Delete(msg);
-//		UART3_RxBuf_Index = 0;
-//  }
-//  /* USER CODE END StartPacketsProcess */
-//}
 

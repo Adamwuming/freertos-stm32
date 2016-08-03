@@ -12,7 +12,7 @@
 #define DHT_LowPin()	HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_RESET)
 #define DHT_ReadPin()	HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin)
 
-struct DHT11 gDHT[2], *Flash_Rx_Buffer_Point=gDHT;
+struct DHT11 gDHT[1];
 
 extern int gEInterval;
 
@@ -45,35 +45,52 @@ int modifyAddrOffset(unsigned int addr)
 		case	7: i=7; break ;
 		}
 		SPI_FLASH_BufferWrite(Tx_Buffer+i, addr + offset/8, 1);
-		printf("Offset has changed on addr->0x%x, send byte is 0x%x. New Offset->%d\n", addr, *(Tx_Buffer+i), getAddrOffset(addr));
+		printf("Offset has changed on addr->0x%x. New Offset->%d\n", addr, getAddrOffset(addr));
 		return 0;
 	}
 	else 
 	{
-		printf("Offset has not changed on addr->0x%x. New Offset->%d\n", addr, getAddrOffset(addr));
+		printf("Offset has not changed on addr->0x%x.", addr);
 		return -1;
 	}
 
 }
 
-int WriteDHTFlash(unsigned char *buffer)
+int WriteDHTFlash(unsigned char *pTxData)
 {
-	unsigned int offset_w;
+	unsigned int offset_r, offset_w;
 	
+	WriteStart:
+	offset_r=getAddrOffset(DHT_Flash_Read_Offset_Addr);
 	offset_w=getAddrOffset(DHT_Flash_Write_Offset_Addr);
-	
+
 	if(offset_w<(SPI_FLASH_PerBlockSize/DHT_DATA_BYTE_SIZE)*2)
 	{
-		SPI_FLASH_BufferWrite(buffer, DHT_Flash_Base_Addr + offset_w*DHT_DATA_BYTE_SIZE, DHT_DATA_BYTE_SIZE);
+		SPI_FLASH_BufferWrite(pTxData, DHT_Flash_Base_Addr + offset_w*DHT_DATA_BYTE_SIZE, DHT_DATA_BYTE_SIZE);
+		printf("Write DHT data to flash addr->0x%x.\n", DHT_Flash_Base_Addr + offset_w*DHT_DATA_BYTE_SIZE);
 		modifyAddrOffset(DHT_Flash_Write_Offset_Addr);
-		printf("Write DHT data to flash addr->0x%x. New offset_w->%d\n", DHT_Flash_Base_Addr + offset_w*DHT_DATA_BYTE_SIZE, getAddrOffset(DHT_Flash_Write_Offset_Addr));
 		return 0;
 	}		
-	else return -1;
-
+	else 
+	{
+		if(offset_r==offset_w)
+		{
+			printf("Sector Erase: addr->0x%x\n", DHT_Flash_Base_Addr);
+			SPI_FLASH_SectorErase(DHT_Flash_Base_Addr);
+			printf("Sector Erase: addr->0x%x\n", DHT_Flash_Base_Addr+0x001000);
+			SPI_FLASH_SectorErase(DHT_Flash_Base_Addr+0x001000);
+			printf("Sector Erase: addr->0x%x\n", DHT_Flash_Base_Addr+0x002000);
+			SPI_FLASH_SectorErase(DHT_Flash_Base_Addr+0x002000);
+			printf("Reset pointer offset value, offset_r %d->%d, offset_w %d->%d\n", offset_r, getAddrOffset(DHT_Flash_Read_Offset_Addr), offset_w, getAddrOffset(DHT_Flash_Write_Offset_Addr));
+			goto WriteStart;
+		}
+		else
+			printf("Can't write DHT data to flash addr->0x%x. It's the most offset_r->%d offset_w->%d\n", DHT_Flash_Base_Addr + offset_w*DHT_DATA_BYTE_SIZE, offset_r, offset_w);
+			return -1;
+	}
 }
 
-int ReadDHTFlash(void)
+int ReadDHTFlash(unsigned char *pRxData)
 {
 	unsigned int offset_r, offset_w;
 	
@@ -82,40 +99,42 @@ int ReadDHTFlash(void)
 	
 	if(offset_r<offset_w)
 	{
-		SPI_FLASH_BufferRead((uint8_t *)Flash_Rx_Buffer_Point, DHT_Flash_Base_Addr + offset_r*DHT_DATA_BYTE_SIZE, DHT_DATA_BYTE_SIZE);
-		//modifyAddrOffset(DHT_Flash_Read_Offset_Addr);
+		SPI_FLASH_BufferRead(pRxData, DHT_Flash_Base_Addr + offset_r*DHT_DATA_BYTE_SIZE, DHT_DATA_BYTE_SIZE);
 		printf("Read DHT data from flash addr->0x%x. New offset_r->%d\n", DHT_Flash_Base_Addr + offset_r*DHT_DATA_BYTE_SIZE, getAddrOffset(DHT_Flash_Read_Offset_Addr));
 		return 0;
 	}
-	else return -1;
+	else 
+	{
+		printf("Can't read DHT data from flash addr->0x%x. It's the most offset_r->%d\n", DHT_Flash_Base_Addr + offset_r*DHT_DATA_BYTE_SIZE, getAddrOffset(DHT_Flash_Read_Offset_Addr));
+		return -1;
+	}	
+}
+
+
+void initDHT(void)
+{
+	gDHT->pickTime=0;
+	gDHT->pickTem=0;
+	gDHT->pickHum=0;
+	printf("Init gDHT.\n");
 }
 
 void wDHT(int pickTime, int pickTem, int pickHum)
 {
-	int i=0;
-	struct DHT11 *p;
+	short sock=1;
 	
-	p=gDHT;
-	for(;i<2;i++)
+	gDHT->pickTime=pickTime;
+	gDHT->pickTem=pickTem;
+	gDHT->pickHum=pickHum;
+	printf("gTem: %d %d %d\n", gDHT->pickTime, gDHT->pickTem, gDHT->pickHum);
+	
+	if(!gConnect)
 	{
-		p=gDHT+i;
-		if((*p).pickTem==0) break;
+		WriteDHTFlash((uint8_t *)gDHT);
+		initDHT();
 	}
-	(*p).pickTime=pickTime;
-	(*p).pickTem=pickTem;
-	(*p).pickHum=pickHum;
-	printf("i: %d gTem: %d %d %d\n", i, (*p).pickTime, (*p).pickTem, (*p).pickHum);
-	
-	if(i == 1) WriteDHTFlash((uint8_t *)p);
-}
-
-void initDHT(int i)
-{
-	struct DHT11 *p;
-	p=gDHT+i;
-	(*p).pickTime=0;
-	(*p).pickTem=0;
-	(*p).pickHum=0;
+	else	
+		xQueueSendToBack(xPubQueue, &sock, 0);	//	json type, sock=1 
 }
 
 void DHT_Set_Output(void)
@@ -171,7 +190,6 @@ int DH11_ReadByte(void)
 void DHT11_ReadData(void)
 {
 	unsigned int cout = 1;
-	short sock=1;
 	unsigned int T_H, T_L, H_H, H_L, Check;
 	
 	DHT_Set_Output();
@@ -205,9 +223,9 @@ void DHT11_ReadData(void)
 		T_H = DH11_ReadByte();
 		T_L = DH11_ReadByte();
 		Check = DH11_ReadByte();
-		if(Check == (H_H + H_L + T_H + T_L)){
+		if(Check == (H_H + H_L + T_H + T_L))
+		{
 			wDHT(HAL_GetTick(), T_H, H_H);
-			xQueueSendToBack(xPubQueue, &sock, 0);
 		}
 	}
 }
@@ -221,6 +239,7 @@ void DHT11_Task(void *argu)
   /* Infinite loop */
   for(;;)
   {
+		osDelay(1);
 		if ((HAL_GetTick() - tickstart) >= 1000 * gEInterval){
 			LED_Toggle(2);
 			DHT11_ReadData();
