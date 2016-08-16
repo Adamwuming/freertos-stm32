@@ -369,7 +369,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine />
-              <IncludePath>../Inc;  ../Middlewares/Third_Party/LwIP/system;  ../Middlewares/Third_Party/LwIP/src/include;  ../Middlewares/Third_Party/LwIP/src/include/ipv4;  ../Drivers/STM32F4xx_HAL_Driver/Inc;  ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;  ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;  ../Middlewares/Third_Party/FreeRTOS/Source/include;  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;  ../Middlewares/Third_Party/LwIP/system/arch;  ../Middlewares/Third_Party/LwIP/src/include/ipv4/lwip;  ../Middlewares/Third_Party/LwIP/src/include/lwip;  ../Middlewares/Third_Party/LwIP/src/include/netif;  ../Middlewares/Third_Party/LwIP/src/include/posix;  ../Middlewares/Third_Party/LwIP/src/include/posix/sys;  ../Middlewares/Third_Party/LwIP/src/netif/ppp;  ../Drivers/CMSIS/Include;  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;  ../Middlewares/MQTT/Inc</IncludePath>
+              <IncludePath>../Inc;               ../Middlewares/Third_Party/LwIP/system;               ../Middlewares/Third_Party/LwIP/src/include;               ../Middlewares/Third_Party/LwIP/src/include/ipv4;               ../Drivers/STM32F4xx_HAL_Driver/Inc;               ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;               ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;               ../Middlewares/Third_Party/FreeRTOS/Source/include;               ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;               ../Middlewares/Third_Party/LwIP/system/arch;               ../Middlewares/Third_Party/LwIP/src/include/ipv4/lwip;               ../Middlewares/Third_Party/LwIP/src/include/lwip;               ../Middlewares/Third_Party/LwIP/src/include/netif;               ../Middlewares/Third_Party/LwIP/src/include/posix;               ../Middlewares/Third_Party/LwIP/src/include/posix/sys;               ../Middlewares/Third_Party/LwIP/src/netif/ppp;               ../Drivers/CMSIS/Include;               ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;               ../Middlewares/MQTT/Inc;               ../Middlewares/freemodbus/inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -981,6 +981,81 @@
               <FileName>MQTTUnsubscribeServer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Middlewares\MQTT\Src\MQTTUnsubscribeServer.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/FreeModbus</GroupName>
+          <Files>
+            <File>
+              <FileName>mb_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\modbus\mb_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbcrc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\modbus\rtu\mbcrc.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbrtu_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\modbus\rtu\mbrtu_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfunccoils_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\modbus\functions\mbfunccoils_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncdisc_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\modbus\functions\mbfuncdisc_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncholding_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\modbus\functions\mbfuncholding_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncinput_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\modbus\functions\mbfuncinput_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncother.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\modbus\functions\mbfuncother.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbutils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\modbus\functions\mbutils.c</FilePath>
+            </File>
+            <File>
+              <FileName>port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\port\port.c</FilePath>
+            </File>
+            <File>
+              <FileName>portevent_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\port\portevent_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>portserial_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\port\portserial_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>porttimer_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\port\porttimer_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_mb_app_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\freemodbus\src\port\user_mb_app_m.c</FilePath>
             </File>
           </Files>
         </Group>

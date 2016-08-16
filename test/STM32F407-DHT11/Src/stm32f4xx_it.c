@@ -37,9 +37,9 @@
 #include "cmsis_os.h"
 
 /* USER CODE BEGIN 0 */
-extern void UART3RxIRQ(void);
-extern void HAL_TIM_UART_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
-extern void __DHT11_IRQHandler(void);
+extern void prvvTIMERExpiredISR(void);
+extern void prvvUARTTxReadyISR(void);
+extern void prvvUARTRxISR(void);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -49,6 +49,7 @@ extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim7;
 extern DMA_HandleTypeDef hdma_usart3_tx;
+extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 
 extern TIM_HandleTypeDef htim6;
@@ -178,7 +179,7 @@ void SysTick_Handler(void)
 void DMA1_Stream3_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
-
+	
   /* USER CODE END DMA1_Stream3_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart3_tx);
   /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
@@ -192,7 +193,15 @@ void DMA1_Stream3_IRQHandler(void)
 void TIM4_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM4_IRQn 0 */
-
+	if(__HAL_TIM_GET_FLAG(&htim4, TIM_FLAG_UPDATE) != RESET)
+  {
+    if(__HAL_TIM_GET_IT_SOURCE(&htim4, TIM_IT_UPDATE) !=RESET)
+    {
+			//printf("T4_UP_IT\n");
+      __HAL_TIM_CLEAR_IT(&htim4, TIM_IT_UPDATE);
+      prvvTIMERExpiredISR();
+    }
+	}
   /* USER CODE END TIM4_IRQn 0 */
   HAL_TIM_IRQHandler(&htim4);
   /* USER CODE BEGIN TIM4_IRQn 1 */
@@ -215,16 +224,39 @@ void SPI2_IRQHandler(void)
 }
 
 /**
+* @brief This function handles USART1 global interrupt.
+*/
+void USART1_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART1_IRQn 0 */
+  if(((__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE)) != RESET) && ((__HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_RXNE)) != RESET))
+  { 
+		//printf("U1_RX_IT\n");
+		prvvUARTRxISR();
+		HAL_NVIC_ClearPendingIRQ(USART1_IRQn);
+  }
+
+	if(((__HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_TXE)) != RESET) && ((__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TXE)) != RESET))
+	{
+		//printf("U1_TX_IT\n");
+		prvvUARTTxReadyISR();
+		HAL_NVIC_ClearPendingIRQ(USART1_IRQn);
+	}
+	
+  /* USER CODE END USART1_IRQn 0 */
+  HAL_UART_IRQHandler(&huart1);
+  /* USER CODE BEGIN USART1_IRQn 1 */
+
+  /* USER CODE END USART1_IRQn 1 */
+}
+
+/**
 * @brief This function handles USART3 global interrupt.
 */
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
-//	if((__HAL_UART_GET_IT_SOURCE(&huart3, UART_IT_RXNE))&& (__HAL_UART_GET_FLAG(&huart3, UART_FLAG_RXNE)) != RESET)
-//	{
-//		UART3RxIRQ();
-//		HAL_NVIC_ClearPendingIRQ(USART3_IRQn);
-//	}
+
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */
@@ -266,14 +298,7 @@ void TIM6_DAC_IRQHandler(void)
 void TIM7_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM7_IRQn 0 */
-//	if(__HAL_TIM_GET_FLAG(&htim7, TIM_FLAG_UPDATE) != RESET)
-//  {
-//    if(__HAL_TIM_GET_IT_SOURCE(&htim7, TIM_IT_UPDATE) !=RESET)
-//    {
-//      __HAL_TIM_CLEAR_IT(&htim7, TIM_IT_UPDATE);
-//      HAL_TIM_UART_PeriodElapsedCallback(&htim7);
-//    }
-//	}
+
   /* USER CODE END TIM7_IRQn 0 */
   HAL_TIM_IRQHandler(&htim7);
   /* USER CODE BEGIN TIM7_IRQn 1 */

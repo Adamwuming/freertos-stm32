@@ -38,6 +38,7 @@
 /* USER CODE BEGIN Includes */
 #include "utask.h"
 #include "stFlash.h"
+#include "user_mb_app.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -49,6 +50,7 @@ SPI_HandleTypeDef hspi2;
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim7;
 
+UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart3_tx;
 
@@ -68,6 +70,7 @@ static void MX_SPI2_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_USART1_UART_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -103,6 +106,7 @@ int main(void)
   MX_TIM7_Init();
   MX_USART3_UART_Init();
   MX_TIM4_Init();
+  MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 2 */
 	HAL_CalTick();
@@ -131,6 +135,7 @@ int main(void)
   /* add threads, ... */
 	xTaskCreate(MQTTWork, "MQTT Client Demo", 512, NULL, 3, NULL);
 	xTaskCreate(DHT11_Task, "DHT11", 128, NULL, 3, NULL);
+	xTaskCreate(MBTask, "Modbus polling", 128, NULL, 3, NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -240,8 +245,8 @@ void MX_TIM4_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 59;
-  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Prescaler = 2999;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_DOWN;
   htim4.Init.Period = 0xffff;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   HAL_TIM_Base_Init(&htim4);
@@ -270,6 +275,22 @@ void MX_TIM7_Init(void)
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig);
+
+}
+
+/* USART1 init function */
+void MX_USART1_UART_Init(void)
+{
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 19200;
+  huart1.Init.WordLength = UART_WORDLENGTH_9B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_EVEN;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  HAL_UART_Init(&huart1);
 
 }
 
@@ -386,7 +407,16 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void MBTask(void *argu)
+{
+	eMBMasterInit(MB_RTU, 19200, MB_PAR_EVEN);
+	eMBMasterEnable();
+	for(;;)
+	{
+		eMBMasterPoll();
+		osDelay(0);
+	}
+}
 /* USER CODE END 4 */
 
 /* StartDefaultTask function */
@@ -401,7 +431,25 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
 	  LED_Toggle(1);
-	  osDelay(1000);
+		osDelay(10000);
+		switch (eMBMasterReqReadHoldingRegister(1, 0, 5, -1))
+		{
+			case MB_MRE_NO_ERR:
+				printf("MBReq: 5->EV_MASTER_PROCESS_SUCESS -> MB_MRE_NO_ERR\n");
+				break;
+			
+			case MB_MRE_TIMEDOUT:
+				printf("MBReq: 6->EV_MASTER_ERROR_RESPOND_TIMEOUT -> MB_MRE_TIMEDOUT\n");
+				break;
+
+			case MB_MRE_REV_DATA:
+				printf("MBReq: 7->EV_MASTER_ERROR_RECEIVE_DATA -> MB_MRE_REV_DATA\n");
+				break;
+			
+			case MB_MRE_EXE_FUN:
+				printf("MBReq: 8->EV_MASTER_ERROR_EXECUTE_FUNCTION -> MB_MRE_EXE_FUN\n");
+				break;	
+		}
 	}
   /* USER CODE END 5 */ 
 }
@@ -420,6 +468,7 @@ void assert_failed(uint8_t* file, uint32_t line)
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+	printf("Wrong parameters value: file %s on line %d\r\n", file, line);
   /* USER CODE END 6 */
 
 }

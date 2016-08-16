@@ -8,10 +8,12 @@
 /*task*/
 extern void MQTTWork(void *argu);
 extern void DHT11_Task(void *argu);
+extern void MBTask(void *argu);
 
 extern xQueueHandle xPubQueue;
 
 /*Private variables*/
+extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 
 /*func*/

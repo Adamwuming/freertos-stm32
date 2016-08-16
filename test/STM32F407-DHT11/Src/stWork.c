@@ -4,10 +4,6 @@
 #include "MQTTClient.h"
 #include "utask.h"
 
-/*mqtt client*/
-#define BUFSIZE		800
-#define RBUFSIZE	400
-
 /*Private variables*/
 #define MAXFILENAME 80
 
@@ -146,7 +142,6 @@ void AnaInterval(cJSON *item)
         UpdateInterval(interval);
     }
 }
-
 
 void CheckCmd(cJSON *root, const char *key, void (*func)(cJSON *))
 {
