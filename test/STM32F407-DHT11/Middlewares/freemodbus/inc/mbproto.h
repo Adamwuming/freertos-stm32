@@ -55,7 +55,7 @@ PR_BEGIN_EXTERN_C
 #define MB_FUNC_OTHER_REPORT_SLAVEID          ( 17 )
 #define MB_FUNC_ERROR                         ( 128 )
 /* ----------------------- Type definitions ---------------------------------*/
-    typedef enum
+typedef enum
 {
     MB_EX_NONE = 0x00,
     MB_EX_ILLEGAL_FUNCTION = 0x01,
@@ -69,7 +69,7 @@ PR_BEGIN_EXTERN_C
     MB_EX_GATEWAY_TGT_FAILED = 0x0B
 } eMBException;
 
-typedef         eMBException( *pxMBFunctionHandler ) ( UCHAR * pucFrame, USHORT * pusLength );
+typedef  eMBException( *pxMBFunctionHandler ) ( UCHAR * pucFrame, USHORT * pusLength );
 
 typedef struct
 {

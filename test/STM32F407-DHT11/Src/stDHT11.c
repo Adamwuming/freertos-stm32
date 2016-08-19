@@ -121,7 +121,7 @@ void initDHT(void)
 
 void wDHT(int pickTime, int pickTem, int pickHum)
 {
-	short sock=1;
+	int sock=1;
 	
 	gDHT->pickTime=pickTime;
 	gDHT->pickTem=pickTem;
@@ -233,6 +233,7 @@ void DHT11_ReadData(void)
 void DHT11_Task(void *argu)
 {
 	int tickstart = 0;
+	int sock = 3;
 	tickstart = HAL_GetTick();
 	UNUSED(argu);
 
@@ -244,6 +245,7 @@ void DHT11_Task(void *argu)
 			LED_Toggle(2);
 			DHT11_ReadData();
 			tickstart = HAL_GetTick();
+			xQueueSendToBack(xPubQueue, &sock, 0);	//	json type, sock=3
 		}
   }
 }

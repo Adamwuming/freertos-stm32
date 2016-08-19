@@ -239,7 +239,7 @@ xMBMasterRTUReceiveFSM( void )
 
     /* Always read the character. */
     ( void )xMBMasterPortSerialGetByte( ( UCHAR * ) & ucByte );
-			printf("R:%x\n", ucByte);
+			//printf("R:%x\n", ucByte);
 
     switch ( eRcvState )
     {

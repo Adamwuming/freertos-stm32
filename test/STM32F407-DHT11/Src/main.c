@@ -140,7 +140,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  xPubQueue = xQueueCreate(2, sizeof(short));	// 2 type PublishData json
+  xPubQueue = xQueueCreate(4, sizeof(int));	// 4 type PublishData json
   /* USER CODE END RTOS_QUEUES */
  
 
@@ -426,16 +426,17 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
 
   /* USER CODE BEGIN 5 */
-	
+
   /* Infinite loop */
   for(;;)
   {
-	  LED_Toggle(1);
+		LED_Toggle(1);
 		osDelay(10000);
-		switch (eMBMasterReqReadHoldingRegister(1, 0, 5, -1))
+		switch (eMBMasterReqReadHoldingRegister(1, 500, 79, -1))
 		{
 			case MB_MRE_NO_ERR:
 				printf("MBReq: 5->EV_MASTER_PROCESS_SUCESS -> MB_MRE_NO_ERR\n");
+				//eMBMasterReqWriteHoldingRegister(1, 509, 33333, -1);
 				break;
 			
 			case MB_MRE_TIMEDOUT:
@@ -448,8 +449,11 @@ void StartDefaultTask(void const * argument)
 			
 			case MB_MRE_EXE_FUN:
 				printf("MBReq: 8->EV_MASTER_ERROR_EXECUTE_FUNCTION -> MB_MRE_EXE_FUN\n");
-				break;	
-		}
+				break;
+			
+			default:
+				break;
+		}	
 	}
   /* USER CODE END 5 */ 
 }

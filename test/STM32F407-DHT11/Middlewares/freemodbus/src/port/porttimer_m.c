@@ -63,7 +63,7 @@ void vMBMasterPortTimersT35Enable()
 
 void vMBMasterPortTimersConvertDelayEnable()
 {
-    int tick_count = 4000;	/*Down count value(50us), delay 200ms TIM_IT_UPDATE*/
+    int tick_count = MB_MASTER_DELAY_MS_CONVERT;	/*Down count value(50us), delay 200ms TIM_IT_UPDATE*/
     /* Set current timer mode, don't change it.*/
     vMBMasterSetCurTimerMode(MB_TMODE_CONVERT_DELAY);
 
@@ -75,7 +75,7 @@ void vMBMasterPortTimersConvertDelayEnable()
 
 void vMBMasterPortTimersRespondTimeoutEnable()
 {
-    int tick_count = 40000;	/*Down count value(50us), delay 2s TIM_IT_UPDATE*/
+    int tick_count = MB_MASTER_TIMEOUT_MS_RESPOND;	/*Down count value(50us), delay 2s TIM_IT_UPDATE*/
     /* Set current timer mode, don't change it.*/
     vMBMasterSetCurTimerMode(MB_TMODE_RESPOND_TIMEOUT);
 

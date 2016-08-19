@@ -56,7 +56,7 @@ PR_BEGIN_EXTERN_C
 /*! \brief If Modbus Slave ASCII support is enabled. */
 #define MB_SLAVE_ASCII_ENABLED                  (  0 )
 /*! \brief If Modbus Slave RTU support is enabled. */
-#define MB_SLAVE_RTU_ENABLED                    (  1 )
+#define MB_SLAVE_RTU_ENABLED                    (  0 )
 /*! \brief If Modbus Slave TCP support is enabled. */
 #define MB_SLAVE_TCP_ENABLED                    (  0 )
 /*! \brief The character timeout value for Modbus ASCII.
@@ -111,14 +111,14 @@ PR_BEGIN_EXTERN_C
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 /*! \brief If master send a broadcast frame,the master will wait time of convert to delay,
  * then master can send other frame */
-#define MB_MASTER_DELAY_MS_CONVERT              (200 )
+#define MB_MASTER_DELAY_MS_CONVERT              (4000)
 /*! \brief If master send a frame which is not broadcast,the master will wait sometime for slave.
  * And if slave is not respond in this time,the master will process this timeout error.
  * Then master can send other frame */
-#define MB_MASTER_TIMEOUT_MS_RESPOND            (100 )
+#define MB_MASTER_TIMEOUT_MS_RESPOND            (40000)
 /*! \brief The total slaves in Modbus Master system. Default 16.
  * \note : The slave ID must be continuous from 1.*/
-#define MB_MASTER_TOTAL_SLAVE_NUM               ( 16 )
+#define MB_MASTER_TOTAL_SLAVE_NUM               (1)
 #endif
 
 #endif

@@ -4,6 +4,7 @@
 #include "MQTTClient.h"
 #include "utask.h"
 
+#include "user_mb_app.h"
 /*Private variables*/
 #define MAXFILENAME 80
 
@@ -11,7 +12,7 @@
 //#define DEFAULTHOST "developer.j1st.io"
 //#define DEFAULTAGENT "577f0d1c280c474b40aad873"
 //#define DEFAULTTOKEN "pvebPgCRkDUDwSWGkOfVVfprigjvMsyK"
-#define DEFAULTHOST "139.198.0.174"
+#define DEFAULTHOST "139.196.230.150"
 #define DEFAULTAGENT "577a2c956097e90494be7fc7"
 #define DEFAULTTOKEN "GejGxXUnfRaITqQOeYtJFHOCcHPwxeGw"
 
@@ -73,38 +74,66 @@ int PublishData(jNet *pJnet, int upstreamId)
 			}
 			break;
 			
-			case 2:	
-				while(!ReadDHTFlash((uint8_t *)gDHT))
-				{
-					deltaTime = (HAL_GetTick() - gDHT->pickTime)/1000;
-					root = cJSON_CreateArray();
+		case 2:	
+			while(!ReadDHTFlash((uint8_t *)gDHT))
+			{
+				deltaTime = (HAL_GetTick() - gDHT->pickTime)/1000;
+				root = cJSON_CreateArray();
 					
-					cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-					cJSON_AddStringToObject(son1, "hwid", gAgent);
-					cJSON_AddStringToObject(son1, "type", "AGENT");
-					if( deltaTime> gEInterval )
-						cJSON_AddNumberToObject(son1, "dtime", deltaTime);
-					cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
-					cJSON_AddNumberToObject(son2, "Tem", gDHT->pickTem);
-					cJSON_AddNumberToObject(son2, "Hem", gDHT->pickHum);
+				cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
+				cJSON_AddStringToObject(son1, "hwid", gAgent);
+				cJSON_AddStringToObject(son1, "type", "AGENT");
+				if( deltaTime> gEInterval )
+					cJSON_AddNumberToObject(son1, "dtime", deltaTime);
+				cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
+				cJSON_AddNumberToObject(son2, "Tem", gDHT->pickTem);
+				cJSON_AddNumberToObject(son2, "Hem", gDHT->pickHum);
 					
-					out=cJSON_PrintUnformatted(root);
-					cJSON_Delete(root);
+				out=cJSON_PrintUnformatted(root);
+				cJSON_Delete(root);
 
-					rc = jNetPublishT(pJnet, gTopicUp, out);
-					free(out);
-					if(rc == 0){
-						printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
-						modifyAddrOffset(DHT_Flash_Read_Offset_Addr);
-					}
-					else
-					{
-						initDHT();
-						break;
-					}
+				rc = jNetPublishT(pJnet, gTopicUp, out);
+				free(out);
+				if(rc == 0){
+					printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+					modifyAddrOffset(DHT_Flash_Read_Offset_Addr);
 				}
-				rc=0;
-				break;
+				else
+				{
+					initDHT();
+					break;
+				}
+			}
+			rc=0;
+			break;
+				
+		case 3:
+			root = cJSON_CreateArray();
+			
+			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
+			cJSON_AddStringToObject(son1, "hwid", "inv0001");
+			cJSON_AddStringToObject(son1, "type", "inv");
+			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
+			cJSON_AddNumberToObject(son2, "vpv1", usMRegHoldBuf[0][0]);
+			cJSON_AddNumberToObject(son2, "vpv2", usMRegHoldBuf[0][1]);
+			cJSON_AddNumberToObject(son2, "ipv1", usMRegHoldBuf[0][6]);
+			cJSON_AddNumberToObject(son2, "ipv2", usMRegHoldBuf[0][7]);
+			cJSON_AddNumberToObject(son2, "iar", usMRegHoldBuf[0][72]);
+			cJSON_AddNumberToObject(son2, "ibs", usMRegHoldBuf[0][73]);
+			cJSON_AddNumberToObject(son2, "ict", usMRegHoldBuf[0][74]);		
+			cJSON_AddNumberToObject(son2, "uar", usMRegHoldBuf[0][77]);
+			cJSON_AddNumberToObject(son2, "ubs", usMRegHoldBuf[0][78]);
+			cJSON_AddNumberToObject(son2, "uct", usMRegHoldBuf[0][79]);
+			cJSON_AddNumberToObject(son2, "etoday", (usMRegHoldBuf[0][62]<<16) + usMRegHoldBuf[0][63]);
+			
+			out=cJSON_PrintUnformatted(root);
+			cJSON_Delete(root);
+
+			rc = jNetPublishT(pJnet, gTopicUp, out);
+			free(out);
+			if(rc == 0)
+				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+			break;
 		}
 	
 	printf("rc: %d\n", rc);
@@ -124,7 +153,7 @@ void SetParas(void)
 
 void UpdateInterval(int newInterval)
 {
-		short sock=0;
+		int sock=0;
     if (newInterval > 0 && newInterval < 3000) {
         gEInterval = newInterval;
 			  printf("UpdateInterval: %d.\n", gEInterval);
@@ -185,7 +214,7 @@ void messageArrived(MessageData* md)
 void MQTTWork(void *argu)
 {
     int rc, delayS=1;
-	  short sock=2;
+	  int sock=2;
     UNUSED(argu);
 
     SetParas();
@@ -222,7 +251,7 @@ void MQTTWork(void *argu)
         do
         {
             /*Demand sending data*/
-            short sock;
+            int sock;
             if (xQueueReceive(xPubQueue, &sock, 1) == pdPASS)
             {
                 printf("Rcvd: xPubQueue %d.\n", sock);
