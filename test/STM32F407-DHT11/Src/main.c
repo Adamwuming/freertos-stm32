@@ -436,7 +436,6 @@ void StartDefaultTask(void const * argument)
 		{
 			case MB_MRE_NO_ERR:
 				printf("MBReq: 5->EV_MASTER_PROCESS_SUCESS -> MB_MRE_NO_ERR\n");
-				//eMBMasterReqWriteHoldingRegister(1, 509, 33333, -1);
 				break;
 			
 			case MB_MRE_TIMEDOUT:

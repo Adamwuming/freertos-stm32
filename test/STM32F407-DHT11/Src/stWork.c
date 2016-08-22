@@ -31,7 +31,7 @@ int PublishData(jNet *pJnet, int upstreamId)
 		char *out;
 	
 		switch(upstreamId){
-		case 0:
+		case PUB_TYPE_AGENT:
 			root = cJSON_CreateArray();
 			
 			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
@@ -49,7 +49,7 @@ int PublishData(jNet *pJnet, int upstreamId)
 				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
 			break;
 				
-		case 1:
+		case PUB_TYPE_DHT:
 			root = cJSON_CreateArray();
 			
 			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
@@ -74,7 +74,7 @@ int PublishData(jNet *pJnet, int upstreamId)
 			}
 			break;
 			
-		case 2:	
+		case PUB_TYPE_HISTORY_DHT:	
 			while(!ReadDHTFlash((uint8_t *)gDHT))
 			{
 				deltaTime = (HAL_GetTick() - gDHT->pickTime)/1000;
@@ -107,7 +107,7 @@ int PublishData(jNet *pJnet, int upstreamId)
 			rc=0;
 			break;
 				
-		case 3:
+		case PUB_TYPE_INV:
 			root = cJSON_CreateArray();
 			
 			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
@@ -135,8 +135,6 @@ int PublishData(jNet *pJnet, int upstreamId)
 				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
 			break;
 		}
-	
-	printf("rc: %d\n", rc);
 	return rc;
 }
 
@@ -145,15 +143,14 @@ void SetParas(void)
     strcpy(gHost, DEFAULTHOST);
     strcpy(gAgent, DEFAULTAGENT);
     strcpy(gToken, DEFAULTTOKEN);
-		
-        
+		       
     sprintf(gTopicDown, "agents/%s/downstream", gAgent);
     sprintf(gTopicUp, "agents/%s/upstream", gAgent);
 }
 
 void UpdateInterval(int newInterval)
 {
-		int sock=0;
+		int sock = PUB_TYPE_AGENT;
     if (newInterval > 0 && newInterval < 3000) {
         gEInterval = newInterval;
 			  printf("UpdateInterval: %d.\n", gEInterval);
@@ -214,7 +211,7 @@ void messageArrived(MessageData* md)
 void MQTTWork(void *argu)
 {
     int rc, delayS=1;
-	  int sock=2;
+	  int sock = PUB_TYPE_HISTORY_DHT;
     UNUSED(argu);
 
     SetParas();

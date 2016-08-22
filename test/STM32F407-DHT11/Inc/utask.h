@@ -5,6 +5,12 @@
 #include "cmsis_os.h"
 #include <stdio.h>
 
+/* ----------------------- Defines ------------------------------------------*/
+#define PUB_TYPE_AGENT 								0
+#define PUB_TYPE_DHT 									1
+#define PUB_TYPE_HISTORY_DHT					2
+#define PUB_TYPE_INV 									3
+
 /*task*/
 extern void MQTTWork(void *argu);
 extern void DHT11_Task(void *argu);
