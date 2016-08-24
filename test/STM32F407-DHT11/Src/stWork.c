@@ -39,14 +39,16 @@ int PublishData(jNet *pJnet, int upstreamId)
 			cJSON_AddStringToObject(son1, "type", "AGENT");
 			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
 			cJSON_AddNumberToObject(son2, "interval", gEInterval);
-			
+						
 			out=cJSON_PrintUnformatted(root);
 			cJSON_Delete(root);
 
 			rc = jNetPublishT(pJnet, gTopicUp, out);
 			free(out);
-			if(rc == 0)
-				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+			
+//			if(rc == 0)
+//				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+			out = NULL;		
 			break;
 				
 		case PUB_TYPE_DHT:
@@ -64,14 +66,15 @@ int PublishData(jNet *pJnet, int upstreamId)
 
 			rc = jNetPublishT(pJnet, gTopicUp, out);
 			free(out);
+				out = NULL;
 		
-			if(rc == 0)
-				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
-			else  
+			if(rc)
 			{
 				WriteDHTFlash((uint8_t *)gDHT);
 				initDHT();
 			}
+//			else  
+//				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
 			break;
 			
 		case PUB_TYPE_HISTORY_DHT:	
@@ -94,15 +97,18 @@ int PublishData(jNet *pJnet, int upstreamId)
 
 				rc = jNetPublishT(pJnet, gTopicUp, out);
 				free(out);
-				if(rc == 0){
-					printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
-					modifyAddrOffset(DHT_Flash_Read_Offset_Addr);
-				}
-				else
+					out = NULL;
+				
+				if(rc)
 				{
 					initDHT();
 					break;
 				}
+//				else
+//				{
+//					printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+//					modifyAddrOffset(DHT_Flash_Read_Offset_Addr);
+//				}
 			}
 			rc=0;
 			break;
@@ -125,14 +131,63 @@ int PublishData(jNet *pJnet, int upstreamId)
 			cJSON_AddNumberToObject(son2, "ubs", usMRegHoldBuf[0][78]);
 			cJSON_AddNumberToObject(son2, "uct", usMRegHoldBuf[0][79]);
 			cJSON_AddNumberToObject(son2, "etoday", (usMRegHoldBuf[0][62]<<16) + usMRegHoldBuf[0][63]);
+						
+//						cJSON_AddNumberToObject(son2, "vpv3", usMRegHoldBuf[0][0]);
+//			cJSON_AddNumberToObject(son2, "vpv3", usMRegHoldBuf[0][1]);
+//			cJSON_AddNumberToObject(son2, "ipv3", usMRegHoldBuf[0][6]);
+//			cJSON_AddNumberToObject(son2, "ipv3", usMRegHoldBuf[0][7]);
+//			cJSON_AddNumberToObject(son2, "iar3", usMRegHoldBuf[0][72]);
+//			cJSON_AddNumberToObject(son2, "ibs3", usMRegHoldBuf[0][73]);
+//			cJSON_AddNumberToObject(son2, "ict3", usMRegHoldBuf[0][74]);		
+//			cJSON_AddNumberToObject(son2, "uar3", usMRegHoldBuf[0][77]);
+//			cJSON_AddNumberToObject(son2, "ubs3", usMRegHoldBuf[0][78]);
+//			cJSON_AddNumberToObject(son2, "uct3", usMRegHoldBuf[0][79]);
+//			cJSON_AddNumberToObject(son2, "etoday3", (usMRegHoldBuf[0][62]<<16) + usMRegHoldBuf[0][63]);
+//			cJSON_AddNumberToObject(son2, "vpv4", usMRegHoldBuf[0][0]);
+//			cJSON_AddNumberToObject(son2, "vpv4", usMRegHoldBuf[0][1]);
+//			cJSON_AddNumberToObject(son2, "ipv4", usMRegHoldBuf[0][6]);
+//			cJSON_AddNumberToObject(son2, "ipv4", usMRegHoldBuf[0][7]);
+//			cJSON_AddNumberToObject(son2, "iar4", usMRegHoldBuf[0][72]);
+//			cJSON_AddNumberToObject(son2, "ibs4", usMRegHoldBuf[0][73]);
+//			cJSON_AddNumberToObject(son2, "ict4", usMRegHoldBuf[0][74]);		
+//			cJSON_AddNumberToObject(son2, "uar4", usMRegHoldBuf[0][77]);
+//			cJSON_AddNumberToObject(son2, "ubs4", usMRegHoldBuf[0][78]);
+//			cJSON_AddNumberToObject(son2, "uct4", usMRegHoldBuf[0][79]);
+//			cJSON_AddNumberToObject(son2, "etoday4", (usMRegHoldBuf[0][62]<<16) + usMRegHoldBuf[0][63]);
+//			
+//			cJSON_AddNumberToObject(son2, "vpv5", usMRegHoldBuf[0][0]);
+//			cJSON_AddNumberToObject(son2, "vpv5", usMRegHoldBuf[0][1]);
+//			cJSON_AddNumberToObject(son2, "ipv5", usMRegHoldBuf[0][6]);
+//			cJSON_AddNumberToObject(son2, "ipv5", usMRegHoldBuf[0][7]);
+//			cJSON_AddNumberToObject(son2, "iar5", usMRegHoldBuf[0][72]);
+//			cJSON_AddNumberToObject(son2, "ibs5", usMRegHoldBuf[0][73]);
+//			cJSON_AddNumberToObject(son2, "ict5", usMRegHoldBuf[0][74]);		
+//			cJSON_AddNumberToObject(son2, "uar5", usMRegHoldBuf[0][77]);
+//			cJSON_AddNumberToObject(son2, "ubs5", usMRegHoldBuf[0][78]);
+//			cJSON_AddNumberToObject(son2, "uct5", usMRegHoldBuf[0][79]);
+//			cJSON_AddNumberToObject(son2, "etoday5", (usMRegHoldBuf[0][62]<<16) + usMRegHoldBuf[0][63]);
+//			
+//									cJSON_AddNumberToObject(son2, "vpv6", usMRegHoldBuf[0][0]);
+//			cJSON_AddNumberToObject(son2, "vpv6", usMRegHoldBuf[0][1]);
+//			cJSON_AddNumberToObject(son2, "ipv6", usMRegHoldBuf[0][6]);
+//			cJSON_AddNumberToObject(son2, "ipv6", usMRegHoldBuf[0][7]);
+//			cJSON_AddNumberToObject(son2, "iar6", usMRegHoldBuf[0][72]);
+//			cJSON_AddNumberToObject(son2, "ibs6", usMRegHoldBuf[0][73]);
+//			cJSON_AddNumberToObject(son2, "ict6", usMRegHoldBuf[0][74]);		
+//			cJSON_AddNumberToObject(son2, "uar6", usMRegHoldBuf[0][77]);
+//			cJSON_AddNumberToObject(son2, "ubs6", usMRegHoldBuf[0][78]);
+//			cJSON_AddNumberToObject(son2, "uct6", usMRegHoldBuf[0][79]);
+//			cJSON_AddNumberToObject(son2, "etoday6", (usMRegHoldBuf[0][62]<<16) + usMRegHoldBuf[0][63]);
 			
 			out=cJSON_PrintUnformatted(root);
 			cJSON_Delete(root);
 
 			rc = jNetPublishT(pJnet, gTopicUp, out);
 			free(out);
-			if(rc == 0)
-				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+				out = NULL;
+			
+//			if(rc == 0)
+//				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
 			break;
 		}
 	return rc;
@@ -140,7 +195,7 @@ int PublishData(jNet *pJnet, int upstreamId)
 
 void SetParas(void)
 {
-    strcpy(gHost, DEFAULTHOST);
+		strcpy(gHost, DEFAULTHOST);
     strcpy(gAgent, DEFAULTAGENT);
     strcpy(gToken, DEFAULTTOKEN);
 		       

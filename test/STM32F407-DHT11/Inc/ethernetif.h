@@ -38,13 +38,6 @@
 #include "lwip/netif.h"
 #include "cmsis_os.h"
 
-/* Exported types ------------------------------------------------------------*/
-/* Structure that include link thread parameters */
-struct link_str {
-  struct netif *netif;
-  osSemaphoreId semaphore;
-};
-
 /* Within 'USER CODE' section, code will be kept by default at each generation */
 /* USER CODE BEGIN 0 */
 

@@ -396,7 +396,7 @@ int result;
 
    if ( s_nextthread < SYS_THREAD_MAX )
    {
-      result = xTaskCreate( thread, ( signed portCHAR * ) name, stacksize, arg, prio, &CreatedTask );
+      result = xTaskCreate( thread, name, stacksize, arg, prio, &CreatedTask );
 
 	   // For each task created, store the task handle (pid) in the timers array.
 	   // This scheme doesn't allow for threads to be deleted

@@ -36,6 +36,7 @@
 
 #include "lwip/lwip_timers.h"
 #include "netif/etharp.h"
+#include "lwip/ethip6.h"
 #include "ethernetif.h"
 #include <string.h>
 #include "cmsis_os.h"
@@ -47,7 +48,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* The time to block waiting for input. */
-#define TIME_WAITING_FOR_INPUT ( 100 )
+#define TIME_WAITING_FOR_INPUT ( portMAX_DELAY )
 /* Stack size of the interface thread */
 #define INTERFACE_THREAD_STACK_SIZE ( 350 )
 
@@ -96,10 +97,10 @@ ETH_HandleTypeDef heth;
 
 /* Private functions ---------------------------------------------------------*/
 
-void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
+void HAL_ETH_MspInit(ETH_HandleTypeDef* ethHandle)
 {
   GPIO_InitTypeDef GPIO_InitStruct;
-  if(heth->Instance==ETH)
+  if(ethHandle->Instance==ETH)
   {
   /* USER CODE BEGIN ETH_MspInit 0 */
 	HAL_GPIO_WritePin(ETH_RESET_GPIO_Port, ETH_RESET_Pin, GPIO_PIN_SET);
@@ -149,9 +150,9 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
   }
 }
 
-void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
+void HAL_ETH_MspDeInit(ETH_HandleTypeDef* ethHandle)
 {
-  if(heth->Instance==ETH)
+  if(ethHandle->Instance==ETH)
   {
   /* USER CODE BEGIN ETH_MspDeInit 0 */
 
@@ -230,6 +231,11 @@ static void low_level_init(struct netif *netif)
   heth.Init.RxMode = ETH_RXINTERRUPT_MODE;
   heth.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
   heth.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
+
+  /* USER CODE BEGIN MACADDRESS */
+    
+  /* USER CODE END MACADDRESS */
+
   hal_eth_init_status = HAL_ETH_Init(&heth);
 
   if (hal_eth_init_status == HAL_OK)
@@ -451,7 +457,8 @@ static struct pbuf * low_level_input(struct netif *netif)
       memcpy( (uint8_t*)((uint8_t*)q->payload + payloadoffset), (uint8_t*)((uint8_t*)buffer + bufferoffset), byteslefttocopy);
       bufferoffset = bufferoffset + byteslefttocopy;
     }
-    
+  }  
+  
     /* Release descriptors to DMA */
     /* Point to first descriptor */
     dmarxdesc = heth.RxFrameInfos.FSRxDesc;
@@ -463,8 +470,7 @@ static struct pbuf * low_level_input(struct netif *netif)
     }
     
     /* Clear Segment_Count */
-    heth.RxFrameInfos.SegCount =0;
-  }    
+    heth.RxFrameInfos.SegCount =0;  
   
   /* When Rx Buffer unavailable flag is set: clear it and resume reception */
   if ((heth.Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)  
@@ -561,14 +567,22 @@ err_t ethernetif_init(struct netif *netif)
    * You can instead declare your own function an call etharp_output()
    * from it if you have to do some checks before sending (e.g. if link
    * is available...) */
+
+#if LWIP_IPV4
 #if LWIP_ARP || LWIP_ETHERNET
 #if LWIP_ARP
   netif->output = etharp_output;
 #else
   /* The user should write ist own code in low_level_output_arp_off function */
   netif->output = low_level_output_arp_off;
-#endif /* LWIP_ARP */ 
-#endif  /* LWIP_ARP || LWIP_ETHERNET */
+#endif /* LWIP_ARP */
+#endif /* LWIP_ARP || LWIP_ETHERNET */
+#endif /* LWIP_IPV4 */
+ 
+#if LWIP_IPV6
+  netif->output_ip6 = ethip6_output;
+#endif /* LWIP_IPV6 */
+
   netif->linkoutput = low_level_output;
 
   /* initialize the hardware */
@@ -608,37 +622,7 @@ u32_t sys_now(void)
   * @param  netif: the network interface
   * @retval None
   */
-void ethernetif_set_link(void const *argument)
-{
-  uint32_t regvalue = 0;
-  struct link_str *link_arg = (struct link_str *)argument;
-  
-  for(;;)
-  {
-    if (osSemaphoreWait( link_arg->semaphore, 100)== osOK)
-    {
-      /* Read PHY_MISR*/
-      HAL_ETH_ReadPHYRegister(&heth, PHY_MISR, &regvalue);
-      
-      /* Check whether the link interrupt has occurred or not */
-      if((regvalue & PHY_LINK_INTERRUPT) != (uint16_t)RESET)
-      {
-        /* Read PHY_SR*/
-        HAL_ETH_ReadPHYRegister(&heth, PHY_SR, &regvalue);
-        
-        /* Check whether the link is up or down*/
-        if((regvalue & PHY_LINK_STATUS)!= (uint16_t)RESET)
-        {
-          netif_set_link_up(link_arg->netif);
-        }
-        else
-        {
-          netif_set_link_down(link_arg->netif);
-        }
-      }
-    }
-  }
-}
+ 
 
 /* USER CODE BEGIN 7 */
 
@@ -653,7 +637,7 @@ void ethernetif_set_link(void const *argument)
   */
 void ethernetif_update_config(struct netif *netif)
 {
-  __IO uint32_t timeout = 0;
+  __IO uint32_t tickstart = 0;
   uint32_t regvalue = 0;
   
   if(netif_is_link_up(netif))
@@ -664,20 +648,21 @@ void ethernetif_update_config(struct netif *netif)
       /* Enable Auto-Negotiation */
       HAL_ETH_WritePHYRegister(&heth, PHY_BCR, PHY_AUTONEGOTIATION);
       
+      /* Get tick */
+      tickstart = HAL_GetTick();
+      
       /* Wait until the auto-negotiation will be completed */
       do
       {
-        timeout++;
         HAL_ETH_ReadPHYRegister(&heth, PHY_BSR, &regvalue);
-      } while (!(regvalue & PHY_AUTONEGO_COMPLETE) && (timeout < PHY_READ_TO));
-      
-      if(timeout == PHY_READ_TO)
-      {      
-        goto error;
-      }
-      
-      /* Reset Timeout counter */
-      timeout = 0;
+        
+        /* Check for the Timeout ( 1s ) */
+        if((HAL_GetTick() - tickstart ) > 1000)
+        {     
+          /* In case of timeout */ 
+          goto error;
+        }   
+      } while (((regvalue & PHY_AUTONEGO_COMPLETE) != PHY_AUTONEGO_COMPLETE));
       
       /* Read the result of the auto-negotiation */
       HAL_ETH_ReadPHYRegister(&heth, PHY_SR, &regvalue);
