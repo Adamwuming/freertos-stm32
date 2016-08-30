@@ -444,21 +444,21 @@ void StartDefaultTask(void const * argument)
 		osDelay(10000);
 		switch (eMBMasterReqReadHoldingRegister(1, 500, 79, -1))
 		{
-			case MB_MRE_NO_ERR:
-				printf("MBReq: 5->EV_MASTER_PROCESS_SUCESS -> MB_MRE_NO_ERR\n");
-				break;
-			
-			case MB_MRE_TIMEDOUT:
-				printf("MBReq: 6->EV_MASTER_ERROR_RESPOND_TIMEOUT -> MB_MRE_TIMEDOUT\n");
-				break;
+//			case MB_MRE_NO_ERR:
+//				printf("MBReq: 5->EV_MASTER_PROCESS_SUCESS -> MB_MRE_NO_ERR\n");
+//				break;
+//			
+//			case MB_MRE_TIMEDOUT:
+//				printf("MBReq: 6->EV_MASTER_ERROR_RESPOND_TIMEOUT -> MB_MRE_TIMEDOUT\n");
+//				break;
 
-			case MB_MRE_REV_DATA:
-				printf("MBReq: 7->EV_MASTER_ERROR_RECEIVE_DATA -> MB_MRE_REV_DATA\n");
-				break;
-			
-			case MB_MRE_EXE_FUN:
-				printf("MBReq: 8->EV_MASTER_ERROR_EXECUTE_FUNCTION -> MB_MRE_EXE_FUN\n");
-				break;
+//			case MB_MRE_REV_DATA:
+//				printf("MBReq: 7->EV_MASTER_ERROR_RECEIVE_DATA -> MB_MRE_REV_DATA\n");
+//				break;
+//			
+//			case MB_MRE_EXE_FUN:
+//				printf("MBReq: 8->EV_MASTER_ERROR_EXECUTE_FUNCTION -> MB_MRE_EXE_FUN\n");
+//				break;
 			
 			default:
 				break;
