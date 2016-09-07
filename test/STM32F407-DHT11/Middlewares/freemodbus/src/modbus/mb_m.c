@@ -330,7 +330,7 @@ eMBMasterPoll( void )
 								}
 							}
 							else {
-								printf("i: %d ucFunctionCode: %d\n", i, ucFunctionCode);
+								//printf("i: %d ucFunctionCode: %d\n", i, ucFunctionCode);
 								eException = xMasterFuncHandlers[i].pxHandler(ucMBFrame, &usLength);
 							}
 							vMBMasterSetCBRunInMasterMode(FALSE);

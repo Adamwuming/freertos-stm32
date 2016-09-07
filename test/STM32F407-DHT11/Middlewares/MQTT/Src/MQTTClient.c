@@ -17,18 +17,18 @@
 #include "FreeRTOS.h"
 #include "MQTTClient.h"
 
-void NewMessageData(MessageData* md, MQTTString* aTopicName, MQTTMessage* aMessage) {
+static void NewMessageData(MessageData* md, MQTTString* aTopicName, MQTTMessage* aMessage) {
     md->topicName = aTopicName;
     md->message = aMessage;
 }
 
 
-int getNextPacketId(Client *c) {
+static int getNextPacketId(Client *c) {
     return c->next_packetid = (c->next_packetid == MAX_PACKET_ID) ? 1 : c->next_packetid + 1;
 }
 
 
-int sendPacket(Client* c, int length, Timer* timer)
+static int sendPacket(Client* c, int length, Timer* timer)
 {
     int rc = FAILURE,
         sent = 0;
@@ -70,7 +70,7 @@ void MQTTClient(Client* c, Network* network, unsigned int command_timeout_ms, un
 }
 
 
-int decodePacket(Client* c, int* value, int timeout)
+static int decodePacket(Client* c, int* value, int timeout)
 {
     unsigned char i;
     int multiplier = 1;
@@ -99,7 +99,7 @@ exit:
 
 extern int checkWaitingPacket(Network* n, Timer* timer);
 
-int readPacket(Client* c, Timer* timer)
+static int readPacket(Client* c, Timer* timer)
 {
     int rc; // = FAILURE;
     MQTTHeader header = {0};
@@ -134,7 +134,7 @@ exit:
 // assume topic filter and name is in correct format
 // # can only be at end
 // + and # can only be next to separator
-char isTopicMatched(char* topicFilter, MQTTString* topicName)
+static char isTopicMatched(char* topicFilter, MQTTString* topicName)
 {
     char* curf = topicFilter;
     char* curn = topicName->lenstring.data;
@@ -288,6 +288,20 @@ int cycle(Client* c, Timer* timer)
                 goto exit; // there was a problem
             break;
         }
+        case PUBREL:
+        {
+            unsigned short mypacketid;
+            unsigned char dup, type;
+            if (MQTTDeserialize_ack(&type, &dup, &mypacketid, c->readbuf, c->readbuf_size) != 1)
+                rc = FAILURE;
+            else if ((len = MQTTSerialize_ack(c->buf, c->buf_size, PUBCOMP, 0, mypacketid)) <= 0)
+                rc = FAILURE;
+            else if ((rc = sendPacket(c, len, timer)) != OKDONE) // send the PUBREL packet
+                rc = FAILURE; // there was a problem
+            if (rc == FAILURE)
+                goto exit; // there was a problem
+            break;
+        }					
         case PUBCOMP:
             break;
         case PINGRESP:

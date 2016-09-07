@@ -244,7 +244,7 @@ int jNetConnect(jNet *pJnet, const char *host, short nPort,
     gMData.username.cstring = (char *)agentId;
     gMData.password.cstring = (char *)token;
     gMData.keepAliveInterval = KEEPALIVEINTERVAL;
-    gMData.cleansession = 1;
+    gMData.cleansession = 0;
     ret = MQTTConnect(pJnet->pClient, &gMData);
     if (ret != 0) close(pJnet->pNet->my_socket);
     return ret;
@@ -270,7 +270,7 @@ int jNetSubscribeT(jNet *pJnet, const char *topic,
 int jNetPublishT(jNet *pJnet, const char *topic, char *payload)
 {
     MQTTMessage msg;
-    msg.qos = QOS1;
+    msg.qos = QOS2;
     msg.retained = 0;
     msg.dup = 0;
     msg.payload = payload;

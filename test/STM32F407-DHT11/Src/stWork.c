@@ -9,12 +9,12 @@
 #define MAXFILENAME 80
 
 #define DEFAULTPORT 1883
-#define DEFAULTHOST "developer.j1st.io"
-#define DEFAULTAGENT "577e0de1280c474b40aad807"
-#define DEFAULTTOKEN "DMrgzzxGaqYhMxuIaEiKKDekGqgYLGKU"
-//#define DEFAULTHOST "139.196.230.150"
-//#define DEFAULTAGENT "577a2c956097e90494be7fc7"
-//#define DEFAULTTOKEN "GejGxXUnfRaITqQOeYtJFHOCcHPwxeGw"
+//#define DEFAULTHOST "developer.j1st.io"
+//#define DEFAULTAGENT "577e0de1280c474b40aad807"
+//#define DEFAULTTOKEN "DMrgzzxGaqYhMxuIaEiKKDekGqgYLGKU"
+#define DEFAULTHOST "139.196.230.150"
+#define DEFAULTAGENT "577a2c956097e90494be7fc7"
+#define DEFAULTTOKEN "GejGxXUnfRaITqQOeYtJFHOCcHPwxeGw"
 
 extern int jNetSubscribeT(jNet *, const char *, enum QoS, messageHandler);
 
@@ -35,7 +35,6 @@ int PublishData(jNet *pJnet, int upstreamId)
 			root = cJSON_CreateArray();
 			
 			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-			cJSON_AddStringToObject(son1, "hwid", gAgent);
 			cJSON_AddStringToObject(son1, "type", "AGENT");
 			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
 			cJSON_AddNumberToObject(son2, "interval", gEInterval);
@@ -56,7 +55,6 @@ int PublishData(jNet *pJnet, int upstreamId)
 			root = cJSON_CreateArray();
 			
 			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-			cJSON_AddStringToObject(son1, "hwid", gAgent);
 			cJSON_AddStringToObject(son1, "type", "AGENT");
 			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
 			cJSON_AddNumberToObject(son2, "Tem", gDHT->pickTem);
@@ -86,7 +84,6 @@ int PublishData(jNet *pJnet, int upstreamId)
 				root = cJSON_CreateArray();
 					
 				cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-				cJSON_AddStringToObject(son1, "hwid", gAgent);
 				cJSON_AddStringToObject(son1, "type", "AGENT");
 				if( deltaTime> gEInterval )
 					cJSON_AddNumberToObject(son1, "dtime", deltaTime);
@@ -120,7 +117,7 @@ int PublishData(jNet *pJnet, int upstreamId)
 			root = cJSON_CreateArray();
 			
 			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-			cJSON_AddStringToObject(son1, "hwid", "inv0001");
+			cJSON_AddStringToObject(son1, "dsn", "inv0001");
 			cJSON_AddStringToObject(son1, "type", "inv");
 			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
 			cJSON_AddNumberToObject(son2, "vpv1", usMRegHoldBuf[0][0]);
