@@ -275,12 +275,14 @@ int cycle(Client* c, Timer* timer)
             break;
         }
         case PUBREC:
+        case PUBREL:
         {
             unsigned short mypacketid;
             unsigned char dup, type;
             if (MQTTDeserialize_ack(&type, &dup, &mypacketid, c->readbuf, c->readbuf_size) != 1)
                 rc = FAILURE;
-            else if ((len = MQTTSerialize_ack(c->buf, c->buf_size, PUBREL, 0, mypacketid)) <= 0)
+            else if ((len = MQTTSerialize_ack(c->buf, c->buf_size, 
+							(packet_type == PUBREC) ? PUBREL : PUBCOMP, 0, mypacketid)) <= 0)
                 rc = FAILURE;
             else if ((rc = sendPacket(c, len, timer)) != OKDONE) // send the PUBREL packet
                 rc = FAILURE; // there was a problem
@@ -288,20 +290,6 @@ int cycle(Client* c, Timer* timer)
                 goto exit; // there was a problem
             break;
         }
-        case PUBREL:
-        {
-            unsigned short mypacketid;
-            unsigned char dup, type;
-            if (MQTTDeserialize_ack(&type, &dup, &mypacketid, c->readbuf, c->readbuf_size) != 1)
-                rc = FAILURE;
-            else if ((len = MQTTSerialize_ack(c->buf, c->buf_size, PUBCOMP, 0, mypacketid)) <= 0)
-                rc = FAILURE;
-            else if ((rc = sendPacket(c, len, timer)) != OKDONE) // send the PUBREL packet
-                rc = FAILURE; // there was a problem
-            if (rc == FAILURE)
-                goto exit; // there was a problem
-            break;
-        }					
         case PUBCOMP:
             break;
         case PINGRESP:
