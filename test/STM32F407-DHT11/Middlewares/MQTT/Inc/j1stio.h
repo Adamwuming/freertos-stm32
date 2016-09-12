@@ -27,8 +27,8 @@ struct jNet
     unsigned char *pRcvBuf;
 };
 
-int linux_read(Network*, unsigned char*, int, int);
-int linux_write(Network*, unsigned char*, int, int);
+int FreeRTOS_read(Network*, unsigned char*, int, int);
+int FreeRTOS_write(Network*, unsigned char*, int, int);
 //void linux_disconnect(jNet*);
 
 extern jNet *jNetInit(void);

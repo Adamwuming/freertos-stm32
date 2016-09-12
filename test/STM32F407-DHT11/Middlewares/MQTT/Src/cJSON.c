@@ -44,8 +44,29 @@ static int cJSON_strcasecmp(const char *s1,const char *s2)
 	return tolower(*(const unsigned char *)s1) - tolower(*(const unsigned char *)s2);
 }
 
+void *cjson_malloc (size_t size)
+{
+  void *result;
+
+  /* Call recursively */
+  result = malloc (size);
+  /* printf might call malloc, so protect it too. */
+  printf ("malloc (%u) rc %p\n", (unsigned int) size, result);
+	return result;
+}
+
+void cjson_free (void *ptr)
+{
+  /* Call recursively */
+	free (ptr);
+  /* printf might call free, so protect it too. */
+  printf ("free %p\n", ptr);
+}
+
 static void *(*cJSON_malloc)(size_t sz) = malloc;
 static void (*cJSON_free)(void *ptr) = free;
+//static void *(*cJSON_malloc)(size_t sz) = cjson_malloc;
+//static void (*cJSON_free)(void *ptr) = cjson_free;
 
 static char* cJSON_strdup(const char* str)
 {
@@ -57,6 +78,7 @@ static char* cJSON_strdup(const char* str)
       memcpy(copy,str,len);
       return copy;
 }
+
 
 void cJSON_InitHooks(cJSON_Hooks* hooks)
 {

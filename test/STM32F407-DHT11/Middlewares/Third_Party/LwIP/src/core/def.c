@@ -44,7 +44,7 @@
  * Again with the aim of being simple, correct and fully portable.
  * Byte swapping is the second thing you would want to optimize. You will
  * need to port it to your architecture and in your cc.h:
- * 
+ *
  * #define LWIP_PLATFORM_BYTESWAP 1
  * #define LWIP_PLATFORM_HTONS(x) <your_htons>
  * #define LWIP_PLATFORM_HTONL(x) <your_htonl>
@@ -106,3 +106,4 @@ lwip_ntohl(u32_t n)
 }
 
 #endif /* (LWIP_PLATFORM_BYTESWAP == 0) && (BYTE_ORDER == LITTLE_ENDIAN) */
+

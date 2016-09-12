@@ -278,7 +278,13 @@ eMBMasterPoll( void )
 			case EV_MASTER_READY:
       break;
 
-      case EV_MASTER_FRAME_RECEIVED:
+			case EV_MASTER_FRAME_SENT:
+        /* Master is busy now. */
+        vMBMasterGetPDUSndBuf( &ucMBFrame );
+				eStatus = peMBMasterFrameSendCur( ucMBMasterGetDestAddress(), ucMBFrame, usMBMasterGetPDUSndLength() );
+			break;
+      
+			case EV_MASTER_FRAME_RECEIVED:
 				eStatus = peMBMasterFrameReceiveCur( &ucRcvAddress, &ucMBFrame, &usLength );
 				/* Check if the frame is for us. If not ,send an error process event. */
 				if ( ( eStatus == MB_ENOERR ) && ( ucRcvAddress == ucMBMasterGetDestAddress() ) )
@@ -324,6 +330,7 @@ eMBMasterPoll( void )
 								}
 							}
 							else {
+								//printf("i: %d ucFunctionCode: %d\n", i, ucFunctionCode);
 								eException = xMasterFuncHandlers[i].pxHandler(ucMBFrame, &usLength);
 							}
 							vMBMasterSetCBRunInMasterMode(FALSE);
@@ -340,12 +347,6 @@ eMBMasterPoll( void )
            vMBMasterCBRequestScuuess( );
            vMBMasterRunResRelease( );
         }
-			break;
-
-			case EV_MASTER_FRAME_SENT:
-        /* Master is busy now. */
-        vMBMasterGetPDUSndBuf( &ucMBFrame );
-				eStatus = peMBMasterFrameSendCur( ucMBMasterGetDestAddress(), ucMBFrame, usMBMasterGetPDUSndLength() );
 			break;
 
 			case EV_MASTER_ERROR_PROCESS:

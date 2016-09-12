@@ -42,9 +42,6 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-SD_HandleTypeDef hsd;
-HAL_SD_CardInfoTypedef SDCardInfo;
-
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim4;
@@ -63,9 +60,9 @@ xQueueHandle xPubQueue;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void Error_Handler(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
-static void MX_SDIO_SD_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_USART3_UART_Init(void);
@@ -101,7 +98,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_SDIO_SD_Init();
   MX_SPI2_Init();
   MX_TIM7_Init();
   MX_USART3_UART_Init();
@@ -133,14 +129,14 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-	xTaskCreate(MQTTWork, "MQTT Client Demo", 512, NULL, 3, NULL);
-	xTaskCreate(DHT11_Task, "DHT11", 128, NULL, 3, NULL);
-	xTaskCreate(MBTask, "Modbus polling", 128, NULL, 3, NULL);
+	xTaskCreate(MQTTWork, "MQTT Client Demo", configMINIMAL_STACK_SIZE*5, NULL, 3, NULL);
+	xTaskCreate(DHT11_Task, "DHT11", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
+	xTaskCreate(MBTask, "Modbus polling", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  xPubQueue = xQueueCreate(2, sizeof(short));	// 2 type PublishData json
+  xPubQueue = xQueueCreate(4, sizeof(int));	// 4 type PublishData json
   /* USER CODE END RTOS_QUEUES */
  
 
@@ -182,7 +178,10 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLN = 144;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 5;
-  HAL_RCC_OscConfig(&RCC_OscInitStruct);
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -190,7 +189,10 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3);
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
@@ -200,25 +202,8 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
 }
 
-/* SDIO init function */
-void MX_SDIO_SD_Init(void)
-{
-
-  hsd.Instance = SDIO;
-  hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
-  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
-  hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
-  hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
-  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd.Init.ClockDiv = 0;
-  HAL_SD_Init(&hsd, &SDCardInfo);
-
-  HAL_SD_WideBusOperation_Config(&hsd, SDIO_BUS_WIDE_4B);
-
-}
-
 /* SPI2 init function */
-void MX_SPI2_Init(void)
+static void MX_SPI2_Init(void)
 {
 
   hspi2.Instance = SPI2;
@@ -233,12 +218,15 @@ void MX_SPI2_Init(void)
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi2.Init.CRCPolynomial = 10;
-  HAL_SPI_Init(&hspi2);
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
 }
 
 /* TIM4 init function */
-void MX_TIM4_Init(void)
+static void MX_TIM4_Init(void)
 {
 
   TIM_ClockConfigTypeDef sClockSourceConfig;
@@ -249,19 +237,28 @@ void MX_TIM4_Init(void)
   htim4.Init.CounterMode = TIM_COUNTERMODE_DOWN;
   htim4.Init.Period = 0xffff;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  HAL_TIM_Base_Init(&htim4);
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
   sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig);
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig);
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
 }
 
 /* TIM7 init function */
-void MX_TIM7_Init(void)
+static void MX_TIM7_Init(void)
 {
 
   TIM_MasterConfigTypeDef sMasterConfig;
@@ -270,16 +267,22 @@ void MX_TIM7_Init(void)
   htim7.Init.Prescaler = 59;
   htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim7.Init.Period = 1750;
-  HAL_TIM_Base_Init(&htim7);
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig);
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
 }
 
 /* USART1 init function */
-void MX_USART1_UART_Init(void)
+static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
@@ -290,12 +293,15 @@ void MX_USART1_UART_Init(void)
   huart1.Init.Mode = UART_MODE_TX_RX;
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  HAL_UART_Init(&huart1);
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
 }
 
 /* USART3 init function */
-void MX_USART3_UART_Init(void)
+static void MX_USART3_UART_Init(void)
 {
 
   huart3.Instance = USART3;
@@ -306,14 +312,17 @@ void MX_USART3_UART_Init(void)
   huart3.Init.Mode = UART_MODE_TX_RX;
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  HAL_UART_Init(&huart3);
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
 }
 
 /** 
   * Enable DMA controller clock
   */
-void MX_DMA_Init(void) 
+static void MX_DMA_Init(void) 
 {
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
@@ -332,7 +341,7 @@ void MX_DMA_Init(void)
         * EVENT_OUT
         * EXTI
 */
-void MX_GPIO_Init(void)
+static void MX_GPIO_Init(void)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct;
@@ -426,16 +435,17 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
 
   /* USER CODE BEGIN 5 */
-	
+
   /* Infinite loop */
   for(;;)
   {
-	  LED_Toggle(1);
+		LED_Toggle(1);
+			//printf("RTOS FreeHeapSize %d\n",xPortGetFreeHeapSize());
 		osDelay(10000);
-		switch (eMBMasterReqReadHoldingRegister(1, 0, 5, -1))
+		switch (eMBMasterReqReadHoldingRegister(1, 500, 79, -1))
 		{
 			case MB_MRE_NO_ERR:
-				printf("MBReq: 5->EV_MASTER_PROCESS_SUCESS -> MB_MRE_NO_ERR\n");
+				//printf("MBReq: 5->EV_MASTER_PROCESS_SUCESS -> MB_MRE_NO_ERR\n");
 				break;
 			
 			case MB_MRE_TIMEDOUT:
@@ -448,10 +458,49 @@ void StartDefaultTask(void const * argument)
 			
 			case MB_MRE_EXE_FUN:
 				printf("MBReq: 8->EV_MASTER_ERROR_EXECUTE_FUNCTION -> MB_MRE_EXE_FUN\n");
-				break;	
-		}
+				break;
+			
+			default:
+				break;
+		}	
 	}
   /* USER CODE END 5 */ 
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+/* USER CODE BEGIN Callback 0 */
+
+/* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6) {
+    HAL_IncTick();
+  }
+/* USER CODE BEGIN Callback 1 */
+
+/* USER CODE END Callback 1 */
+}
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @param  None
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler */
+  /* User can add his own implementation to report the HAL error return state */
+  while(1) 
+  {
+  }
+  /* USER CODE END Error_Handler */ 
 }
 
 #ifdef USE_FULL_ASSERT

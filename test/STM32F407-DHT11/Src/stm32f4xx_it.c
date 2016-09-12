@@ -44,7 +44,6 @@ extern void prvvUARTRxISR(void);
 
 /* External variables --------------------------------------------------------*/
 extern ETH_HandleTypeDef heth;
-extern SD_HandleTypeDef hsd;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim7;
@@ -66,7 +65,6 @@ void NMI_Handler(void)
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
-  
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
 
   /* USER CODE END NonMaskableInt_IRQn 1 */
@@ -144,9 +142,6 @@ void DebugMon_Handler(void)
   /* USER CODE BEGIN DebugMonitor_IRQn 0 */
 
   /* USER CODE END DebugMonitor_IRQn 0 */
-  while (1)
-  {
-  }
   /* USER CODE BEGIN DebugMonitor_IRQn 1 */
 
   /* USER CODE END DebugMonitor_IRQn 1 */
@@ -262,20 +257,6 @@ void USART3_IRQHandler(void)
   /* USER CODE BEGIN USART3_IRQn 1 */
 
   /* USER CODE END USART3_IRQn 1 */
-}
-
-/**
-* @brief This function handles SDIO global interrupt.
-*/
-void SDIO_IRQHandler(void)
-{
-  /* USER CODE BEGIN SDIO_IRQn 0 */
-
-  /* USER CODE END SDIO_IRQn 0 */
-  HAL_SD_IRQHandler(&hsd);
-  /* USER CODE BEGIN SDIO_IRQn 1 */
-
-  /* USER CODE END SDIO_IRQn 1 */
 }
 
 /**

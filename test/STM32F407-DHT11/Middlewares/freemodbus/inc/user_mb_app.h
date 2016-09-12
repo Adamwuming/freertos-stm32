@@ -1,4 +1,4 @@
-#ifndef    USER_APP
+#ifndef USER_APP
 #define USER_APP
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
@@ -44,5 +44,10 @@
 #define          M_CO_RESERVE                     0
 /* master mode: discrete's all address */
 #define          M_DI_RESERVE                     0
+
+//Master mode:InputRegister variables
+extern USHORT   usMRegInBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_INPUT_NREGS];
+//Master mode:HoldingRegister variables
+extern USHORT   usMRegHoldBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_HOLDING_NREGS];
 
 #endif

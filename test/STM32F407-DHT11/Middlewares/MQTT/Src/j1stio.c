@@ -3,11 +3,11 @@
 #include <errno.h>			//NOTE: There are some differences between ARM Limited and Linux Limited of <errno.h> 
 
 
-#include "FreeRTOS.h" 	//NOTE: You may need to modify the import path(rtos)
-#include "task.h"				//NOTE: You may need to modify the import path(rtos)
+#include "FreeRTOS.h"
+#include "task.h"
 
-#include "lwip/sockets.h" //NOTE: You may need to modify the import path(lwip)
-#include "lwip/netdb.h" //NOTE: LWIP_DNS==1, Turn on DNS module in "lwipopts.h"
+#include "lwip/sockets.h"
+#include "lwip/netdb.h"
 
 #include "j1stio.h"
 #include "MQTTClient.h"
@@ -73,7 +73,7 @@ void InitTimer(Timer* timer, int id)
 }
 
 
-int jnet_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
+int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {
     struct timeval interval = {timeout_ms / 1000, (timeout_ms % 1000) * 1000};
     if (interval.tv_sec < 0 || (interval.tv_sec == 0 && interval.tv_usec <= 0))
@@ -120,7 +120,7 @@ int checkWaitingPacket(Network* n, Timer* timer)
     else return 0;
 }
 
-int jnet_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
+int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {
     struct timeval tv;
 
@@ -141,15 +141,15 @@ jNet * jNetInit(void)
     unsigned char *pSendBuf;
     unsigned char *pRcvBuf;
 
-    if ((pRcvBuf = (unsigned char *)malloc(MAX_RCVBUF)) == NULL)	goto err1;
+    if ((pRcvBuf = (unsigned char *)malloc(MAX_RCVBUF)) == NULL)	goto err1;	//pvPortMalloc->freeRTOS heap_4
     if ((pSendBuf = (unsigned char *)malloc(MAX_SENDBUF)) == NULL) goto err2;
     if ((pClient = (Client *)malloc(sizeof(struct Client))) == NULL) goto err3;
     if ((pNetwork = (Network *)malloc(sizeof(struct Network))) == NULL) goto err4;
     if ((tNet = (jNet *)malloc(sizeof(struct jNet))) == NULL) goto err5;
 
     pNetwork->my_socket = 0;
-    pNetwork->mqttread = jnet_read;
-    pNetwork->mqttwrite = jnet_write;
+    pNetwork->mqttread = FreeRTOS_read;
+    pNetwork->mqttwrite = FreeRTOS_write;
 
 		tNet->pNet = pNetwork;
     tNet->pClient = pClient;
@@ -160,7 +160,7 @@ jNet * jNetInit(void)
     return tNet;
 
 err5:
-    if (pNetwork)	free(pNetwork);
+    if (pNetwork)	free(pNetwork);	//vPortFree->freeRTOS heap_4
 err4:
     if (pClient)	free(pClient);
 err3:
@@ -244,7 +244,7 @@ int jNetConnect(jNet *pJnet, const char *host, short nPort,
     gMData.username.cstring = (char *)agentId;
     gMData.password.cstring = (char *)token;
     gMData.keepAliveInterval = KEEPALIVEINTERVAL;
-    gMData.cleansession = 1;
+    gMData.cleansession = 0;
     ret = MQTTConnect(pJnet->pClient, &gMData);
     if (ret != 0) close(pJnet->pNet->my_socket);
     return ret;
@@ -270,7 +270,7 @@ int jNetSubscribeT(jNet *pJnet, const char *topic,
 int jNetPublishT(jNet *pJnet, const char *topic, char *payload)
 {
     MQTTMessage msg;
-    msg.qos = QOS1;
+    msg.qos = QOS2;
     msg.retained = 0;
     msg.dup = 0;
     msg.payload = payload;

@@ -40,6 +40,7 @@
 /* USER CODE END 0 */
 
 /* ETH Variables initialization ----------------------------------------------*/
+void Error_Handler(void);
 
 /* USER CODE BEGIN 1 */
 
@@ -47,29 +48,31 @@
 
 /* Variables Initialization */
 struct netif gnetif;
-struct ip_addr ipaddr;
-struct ip_addr netmask;
-struct ip_addr gw;
+ip4_addr_t ipaddr;
+ip4_addr_t netmask;
+ip4_addr_t gw;
 
 /* USER CODE BEGIN 2 */
 
 /* USER CODE END 2 */
 
-/* init function */
+/**
+  * LwIP initialization function
+  */
 void MX_LWIP_Init(void)
-{ 
-  tcpip_init( NULL, NULL );	
- 
+{
+  /* Initilialize the LwIP stack with RTOS */
+  tcpip_init( NULL, NULL );
+
+  /* IP addresses initialization with DHCP (IPv4) */
   ipaddr.addr = 0;
   netmask.addr = 0;
   gw.addr = 0;
-  
 
-  /* add the network interface */
+  /* add the network interface (IPv4/IPv6) with RTOS */
   netif_add(&gnetif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &tcpip_input);
- 
- 
-  /*  Registers the default network interface */
+
+  /* Registers the default network interface */
   netif_set_default(&gnetif);
 
   if (netif_is_link_up(&gnetif))
@@ -80,20 +83,16 @@ void MX_LWIP_Init(void)
   else
   {
     /* When the netif link is down this function must be called */
-       netif_set_down(&gnetif);
-  }  
-  
-  /* Set the link callback function, this function is called on change of link status*/
-  netif_set_link_callback(&gnetif, ethernetif_update_config);
+    netif_set_down(&gnetif);
+  }
 
-dhcp_start(&gnetif);
-  
+  /* Start DHCP negotiation for a network interface (IPv4) */
+  dhcp_start(&gnetif);
 
 /* USER CODE BEGIN 3 */
 
 /* USER CODE END 3 */
 }
-
 /* USER CODE BEGIN 4 */
 /**
  * ----------------------------------------------------------------------

@@ -22,26 +22,49 @@
 
 /*-----------------------Master mode use these variables----------------------*/
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
+//Master mode:InputRegister variables
+USHORT   usMRegInBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_INPUT_NREGS];
+//Master mode:HoldingRegister variables
+USHORT   usMRegHoldBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_HOLDING_NREGS];
 //Master mode:DiscreteInputs variables
-USHORT   usMDiscInStart                             = M_DISCRETE_INPUT_START;
 #if      M_DISCRETE_INPUT_NDISCRETES%8
 UCHAR    ucMDiscInBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_DISCRETE_INPUT_NDISCRETES/8+1];
 #else
 UCHAR    ucMDiscInBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_DISCRETE_INPUT_NDISCRETES/8];
 #endif
 //Master mode:Coils variables
-USHORT   usMCoilStart                               = M_COIL_START;
 #if      M_COIL_NCOILS%8
 UCHAR    ucMCoilBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_COIL_NCOILS/8+1];
 #else
 UCHAR    ucMCoilBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_COIL_NCOILS/8];
 #endif
-//Master mode:InputRegister variables
-USHORT   usMRegInStart                              = M_REG_INPUT_START;
-USHORT   usMRegInBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_INPUT_NREGS];
-//Master mode:HoldingRegister variables
-USHORT   usMRegHoldStart                            = M_REG_HOLDING_START;
-USHORT   usMRegHoldBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_HOLDING_NREGS];
+
+
+/**
+ * To configure modbus master register(RAM) iRegIndex .
+ *
+ * @param pucRegBuffer input register buffer
+ * @param usAddress input register address
+ * @param usNRegs input register number
+ *
+ * @return result
+ */
+
+USHORT eMBMasterGetRegIndex(USHORT usAddress)
+{
+	USHORT regIndex;
+	if( usAddress>=500 && usAddress<=511 )
+		regIndex = usAddress - 500;
+	
+	if( usAddress>=525 && usAddress<=526 )
+		regIndex = usAddress - 513;
+	
+	if( usAddress>=532 && usAddress<=533 )
+		regIndex = usAddress - 513;
+	
+	return regIndex;
+}
+
 
 /**
  * Modbus master input register callback function.
@@ -57,20 +80,19 @@ eMBErrorCode eMBMasterRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          iRegIndex;
     USHORT *        pusRegInputBuf;
-    USHORT          REG_INPUT_START;
-    USHORT          REG_INPUT_NREGS;
+    USHORT          regInputStart;
+    USHORT          regInputNRegs;
     USHORT          usRegInStart;
 
     pusRegInputBuf = usMRegInBuf[ucMBMasterGetDestAddress() - 1];
-    REG_INPUT_START = M_REG_INPUT_START;
-    REG_INPUT_NREGS = M_REG_INPUT_NREGS;
-    usRegInStart = usMRegInStart;
+    regInputStart = M_REG_INPUT_START;
+    regInputNRegs = M_REG_INPUT_NREGS;
+    usRegInStart = M_REG_INPUT_START;
 
     /* it already plus one in modbus function method. */
     usAddress--;
-
-    if ((usAddress >= REG_INPUT_START)
-            && (usAddress + usNRegs <= REG_INPUT_START + REG_INPUT_NREGS))
+		//TODO usRegAddress map
+    if ((usAddress >= regInputStart) && (usNRegs <= regInputNRegs))
     {
         iRegIndex = usAddress - usRegInStart;
         while (usNRegs > 0)
@@ -105,25 +127,25 @@ eMBErrorCode eMBMasterRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          iRegIndex;
     USHORT *        pusRegHoldingBuf;
-    USHORT          REG_HOLDING_START;
-    USHORT          REG_HOLDING_NREGS;
+    USHORT          regHoldingStart;
+    USHORT          regHoldingNRegs;
     USHORT          usRegHoldStart;
 
     pusRegHoldingBuf = usMRegHoldBuf[ucMBMasterGetDestAddress() - 1];
-    REG_HOLDING_START = M_REG_HOLDING_START;
-    REG_HOLDING_NREGS = M_REG_HOLDING_NREGS;
-    usRegHoldStart = usMRegHoldStart;
+    regHoldingStart = M_REG_HOLDING_START;
+    regHoldingNRegs = M_REG_HOLDING_NREGS;
+    usRegHoldStart = M_REG_HOLDING_START;
     /* if mode is read, the master will write the received date to buffer. */
     eMode = MB_REG_WRITE;
 
     /* it already plus one in modbus function method. */
     usAddress--;
-
-    if ((usAddress >= REG_HOLDING_START)
-            && (usAddress + usNRegs <= REG_HOLDING_START + REG_HOLDING_NREGS))
+		//TODO usRegAddress map
+    if ((usAddress >= regHoldingStart) && (usNRegs <= regHoldingNRegs))
     {
-        iRegIndex = usAddress - usRegHoldStart;
-        switch (eMode)
+        //iRegIndex = usAddress - usRegHoldStart;
+        iRegIndex = usRegHoldStart;
+				switch (eMode)
         {
         /* read current register values from the protocol stack. */
         case MB_REG_READ:
@@ -170,25 +192,24 @@ eMBErrorCode eMBMasterRegCoilsCB(UCHAR * pucRegBuffer, USHORT usAddress,
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          iRegIndex , iRegBitIndex , iNReg;
     UCHAR *         pucCoilBuf;
-    USHORT          COIL_START;
-    USHORT          COIL_NCOILS;
+    USHORT          coilStart;
+    USHORT          coilNCoils;
     USHORT          usCoilStart;
     iNReg =  usNCoils / 8 + 1;
 
     pucCoilBuf = ucMCoilBuf[ucMBMasterGetDestAddress() - 1];
-    COIL_START = M_COIL_START;
-    COIL_NCOILS = M_COIL_NCOILS;
-    usCoilStart = usMCoilStart;
+    coilStart = M_COIL_START;
+    coilNCoils = M_COIL_NCOILS;
+    usCoilStart = M_COIL_START;
 
     /* if mode is read,the master will write the received date to buffer. */
     eMode = MB_REG_WRITE;
 
     /* it already plus one in modbus function method. */
     usAddress--;
-
-    if ((usAddress >= COIL_START)
-            && (usAddress + usNCoils <= COIL_START + COIL_NCOILS))
-    {
+		//TODO usRegAddress map
+    if ((usAddress >= coilStart) && (usNCoils <= coilNCoils))
+		{
         iRegIndex = (USHORT) (usAddress - usCoilStart) / 8;
         iRegBitIndex = (USHORT) (usAddress - usCoilStart) % 8;
         switch (eMode)
@@ -249,22 +270,21 @@ eMBErrorCode eMBMasterRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress, USH
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          iRegIndex , iRegBitIndex , iNReg;
     UCHAR *         pucDiscreteInputBuf;
-    USHORT          DISCRETE_INPUT_START;
-    USHORT          DISCRETE_INPUT_NDISCRETES;
+    USHORT          discreteInputStart;
+    USHORT          discrsteInputNDiscretes;
     USHORT          usDiscreteInputStart;
     iNReg =  usNDiscrete / 8 + 1;
 
     pucDiscreteInputBuf = ucMDiscInBuf[ucMBMasterGetDestAddress() - 1];
-    DISCRETE_INPUT_START = M_DISCRETE_INPUT_START;
-    DISCRETE_INPUT_NDISCRETES = M_DISCRETE_INPUT_NDISCRETES;
-    usDiscreteInputStart = usMDiscInStart;
+    discreteInputStart = M_DISCRETE_INPUT_START;
+    discrsteInputNDiscretes = M_DISCRETE_INPUT_NDISCRETES;
+    usDiscreteInputStart = M_DISCRETE_INPUT_START;
 
     /* it already plus one in modbus function method. */
     usAddress--;
-
-    if ((usAddress >= DISCRETE_INPUT_START)
-            && (usAddress + usNDiscrete    <= DISCRETE_INPUT_START + DISCRETE_INPUT_NDISCRETES))
-    {
+		//TODO usRegAddress map
+    if ((usAddress >= discreteInputStart) && (usNDiscrete <= discrsteInputNDiscretes))
+		{
         iRegIndex = (USHORT) (usAddress - usDiscreteInputStart) / 8;
         iRegBitIndex = (USHORT) (usAddress - usDiscreteInputStart) % 8;
 

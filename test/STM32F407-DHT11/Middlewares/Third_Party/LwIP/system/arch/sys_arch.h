@@ -33,6 +33,9 @@
 #define __SYS_RTXC_H__
 
 #include "cmsis_os.h"
+#if LWIP_SOCKET_SET_ERRNO
+#include <errno.h>
+#endif
 
 #define SYS_MBOX_NULL (osMessageQId)0
 #define SYS_SEM_NULL  (osSemaphoreId)0

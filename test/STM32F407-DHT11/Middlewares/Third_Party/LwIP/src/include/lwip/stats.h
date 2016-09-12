@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
- * All rights reserved. 
- * 
- * Redistribution and use in source and binary forms, with or without modification, 
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -11,26 +11,26 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
+ *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
  * This file is part of the lwIP TCP/IP stack.
- * 
+ *
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __LWIP_STATS_H__
-#define __LWIP_STATS_H__
+#ifndef LWIP_HDR_STATS_H
+#define LWIP_HDR_STATS_H
 
 #include "lwip/opt.h"
 
@@ -53,7 +53,7 @@ extern "C" {
 #else
 #define STAT_COUNTER     u16_t
 #define STAT_COUNTER_F   U16_F
-#endif 
+#endif
 
 struct stats_proto {
   STAT_COUNTER xmit;             /* Transmitted packets. */
@@ -91,10 +91,10 @@ struct stats_mem {
 #ifdef LWIP_DEBUG
   const char *name;
 #endif /* LWIP_DEBUG */
+  STAT_COUNTER err;
   mem_size_t avail;
   mem_size_t used;
   mem_size_t max;
-  STAT_COUNTER err;
   STAT_COUNTER illegal;
 };
 
@@ -108,6 +108,78 @@ struct stats_sys {
   struct stats_syselem sem;
   struct stats_syselem mutex;
   struct stats_syselem mbox;
+};
+
+struct stats_mib2 {
+  /* IP */
+  u32_t ipinhdrerrors;
+  u32_t ipinaddrerrors;
+  u32_t ipinunknownprotos;
+  u32_t ipindiscards;
+  u32_t ipindelivers;
+  u32_t ipoutrequests;
+  u32_t ipoutdiscards;
+  u32_t ipoutnoroutes;
+  u32_t ipreasmoks;
+  u32_t ipreasmfails;
+  u32_t ipfragoks;
+  u32_t ipfragfails;
+  u32_t ipfragcreates;
+  u32_t ipreasmreqds;
+  u32_t ipforwdatagrams;
+  u32_t ipinreceives;
+
+  /* TCP */
+  u32_t tcpactiveopens;
+  u32_t tcppassiveopens;
+  u32_t tcpattemptfails;
+  u32_t tcpestabresets;
+  u32_t tcpoutsegs;
+  u32_t tcpretranssegs;
+  u32_t tcpinsegs;
+  u32_t tcpinerrs;
+  u32_t tcpoutrsts;
+
+  /* UDP */
+  u32_t udpindatagrams;
+  u32_t udpnoports;
+  u32_t udpinerrors;
+  u32_t udpoutdatagrams;
+
+  /* ICMP */
+  u32_t icmpinmsgs;
+  u32_t icmpinerrors;
+  u32_t icmpindestunreachs;
+  u32_t icmpintimeexcds;
+  u32_t icmpinparmprobs;
+  u32_t icmpinsrcquenchs;
+  u32_t icmpinredirects;
+  u32_t icmpinechos;
+  u32_t icmpinechoreps;
+  u32_t icmpintimestamps;
+  u32_t icmpintimestampreps;
+  u32_t icmpinaddrmasks;
+  u32_t icmpinaddrmaskreps;
+  u32_t icmpoutmsgs;
+  u32_t icmpouterrors;
+  u32_t icmpoutdestunreachs;
+  u32_t icmpouttimeexcds;
+  u32_t icmpoutechos; /* can be incremented by user application ('ping') */
+  u32_t icmpoutechoreps;
+};
+
+struct stats_mib2_netif_ctrs {
+  u32_t ifinoctets;
+  u32_t ifinucastpkts;
+  u32_t ifinnucastpkts;
+  u32_t ifindiscards;
+  u32_t ifinerrors;
+  u32_t ifinunknownprotos;
+  u32_t ifoutoctets;
+  u32_t ifoutucastpkts;
+  u32_t ifoutnucastpkts;
+  u32_t ifoutdiscards;
+  u32_t ifouterrors;
 };
 
 struct stats_ {
@@ -144,6 +216,24 @@ struct stats_ {
 #if SYS_STATS
   struct stats_sys sys;
 #endif
+#if IP6_STATS
+  struct stats_proto ip6;
+#endif
+#if ICMP6_STATS
+  struct stats_proto icmp6;
+#endif
+#if IP6_FRAG_STATS
+  struct stats_proto ip6_frag;
+#endif
+#if MLD6_STATS
+  struct stats_igmp mld6;
+#endif
+#if ND6_STATS
+  struct stats_proto nd6;
+#endif
+#if MIB2_STATS
+  struct stats_mib2 mib2;
+#endif
 };
 
 extern struct stats_ lwip_stats;
@@ -157,6 +247,7 @@ void stats_init(void);
                                     lwip_stats.x.max = lwip_stats.x.used; \
                                 } \
                              } while(0)
+#define STATS_GET(x) lwip_stats.x
 #else /* LWIP_STATS */
 #define stats_init()
 #define STATS_INC(x)
@@ -190,7 +281,7 @@ void stats_init(void);
 
 #if IGMP_STATS
 #define IGMP_STATS_INC(x) STATS_INC(x)
-#define IGMP_STATS_DISPLAY() stats_display_igmp(&lwip_stats.igmp)
+#define IGMP_STATS_DISPLAY() stats_display_igmp(&lwip_stats.igmp, "IGMP")
 #else
 #define IGMP_STATS_INC(x)
 #define IGMP_STATS_DISPLAY()
@@ -248,12 +339,14 @@ void stats_init(void);
 #define MEMP_STATS_DEC(x, i) STATS_DEC(memp[i].x)
 #define MEMP_STATS_INC_USED(x, i) STATS_INC_USED(memp[i], 1)
 #define MEMP_STATS_DISPLAY(i) stats_display_memp(&lwip_stats.memp[i], i)
+#define MEMP_STATS_GET(x, i) STATS_GET(memp[i].x)
 #else
 #define MEMP_STATS_AVAIL(x, i, y)
 #define MEMP_STATS_INC(x, i)
 #define MEMP_STATS_DEC(x, i)
 #define MEMP_STATS_INC_USED(x, i)
 #define MEMP_STATS_DISPLAY(i)
+#define MEMP_STATS_GET(x, i) 0
 #endif
 
 #if SYS_STATS
@@ -268,18 +361,64 @@ void stats_init(void);
 #define SYS_STATS_DISPLAY()
 #endif
 
+#if IP6_STATS
+#define IP6_STATS_INC(x) STATS_INC(x)
+#define IP6_STATS_DISPLAY() stats_display_proto(&lwip_stats.ip6, "IPv6")
+#else
+#define IP6_STATS_INC(x)
+#define IP6_STATS_DISPLAY()
+#endif
+
+#if ICMP6_STATS
+#define ICMP6_STATS_INC(x) STATS_INC(x)
+#define ICMP6_STATS_DISPLAY() stats_display_proto(&lwip_stats.icmp6, "ICMPv6")
+#else
+#define ICMP6_STATS_INC(x)
+#define ICMP6_STATS_DISPLAY()
+#endif
+
+#if IP6_FRAG_STATS
+#define IP6_FRAG_STATS_INC(x) STATS_INC(x)
+#define IP6_FRAG_STATS_DISPLAY() stats_display_proto(&lwip_stats.ip6_frag, "IPv6 FRAG")
+#else
+#define IP6_FRAG_STATS_INC(x)
+#define IP6_FRAG_STATS_DISPLAY()
+#endif
+
+#if MLD6_STATS
+#define MLD6_STATS_INC(x) STATS_INC(x)
+#define MLD6_STATS_DISPLAY() stats_display_igmp(&lwip_stats.mld6, "MLDv1")
+#else
+#define MLD6_STATS_INC(x)
+#define MLD6_STATS_DISPLAY()
+#endif
+
+#if ND6_STATS
+#define ND6_STATS_INC(x) STATS_INC(x)
+#define ND6_STATS_DISPLAY() stats_display_proto(&lwip_stats.nd6, "ND")
+#else
+#define ND6_STATS_INC(x)
+#define ND6_STATS_DISPLAY()
+#endif
+
+#if MIB2_STATS
+#define MIB2_STATS_INC(x) STATS_INC(x)
+#else
+#define MIB2_STATS_INC(x)
+#endif
+
 /* Display of statistics */
 #if LWIP_STATS_DISPLAY
 void stats_display(void);
 void stats_display_proto(struct stats_proto *proto, const char *name);
-void stats_display_igmp(struct stats_igmp *igmp);
+void stats_display_igmp(struct stats_igmp *igmp, const char *name);
 void stats_display_mem(struct stats_mem *mem, const char *name);
 void stats_display_memp(struct stats_mem *mem, int index);
 void stats_display_sys(struct stats_sys *sys);
 #else /* LWIP_STATS_DISPLAY */
 #define stats_display()
 #define stats_display_proto(proto, name)
-#define stats_display_igmp(igmp)
+#define stats_display_igmp(igmp, name)
 #define stats_display_mem(mem, name)
 #define stats_display_memp(mem, index)
 #define stats_display_sys(sys)
@@ -289,4 +428,5 @@ void stats_display_sys(struct stats_sys *sys);
 }
 #endif
 
-#endif /* __LWIP_STATS_H__ */
+#endif /* LWIP_HDR_STATS_H */
+

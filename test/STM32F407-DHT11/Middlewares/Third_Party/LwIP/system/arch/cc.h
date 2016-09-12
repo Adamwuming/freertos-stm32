@@ -33,6 +33,7 @@
 #define __CC_H__
 
 #include "cpu.h"
+#include <stdlib.h>
 
 typedef unsigned   char    u8_t;
 typedef signed     char    s8_t;
@@ -53,7 +54,7 @@ typedef int sys_prot_t;
 #define SZT_F "uz" 
 
 
-
+#define LWIP_PLATFORM_DIAG(message)
 
 
 /* define compiler specific symbols */
@@ -72,6 +73,7 @@ typedef int sys_prot_t;
 #define PACK_STRUCT_END
 #define PACK_STRUCT_FIELD(x) x
 
+
 #elif defined (__GNUC__)
 
 #define PACK_STRUCT_BEGIN
@@ -89,5 +91,7 @@ typedef int sys_prot_t;
 #endif
 
 #define LWIP_PLATFORM_ASSERT(x) //do { if(!(x)) while(1); } while(0)
+
+#define LWIP_RAND() ((u32_t)rand())
 
 #endif /* __CC_H__ */

@@ -4,14 +4,15 @@
 #include "MQTTClient.h"
 #include "utask.h"
 
+#include "user_mb_app.h"
 /*Private variables*/
 #define MAXFILENAME 80
 
 #define DEFAULTPORT 1883
 //#define DEFAULTHOST "developer.j1st.io"
-//#define DEFAULTAGENT "577f0d1c280c474b40aad873"
-//#define DEFAULTTOKEN "pvebPgCRkDUDwSWGkOfVVfprigjvMsyK"
-#define DEFAULTHOST "139.198.0.174"
+//#define DEFAULTAGENT "577e0de1280c474b40aad807"
+//#define DEFAULTTOKEN "DMrgzzxGaqYhMxuIaEiKKDekGqgYLGKU"
+#define DEFAULTHOST "139.196.230.150"
 #define DEFAULTAGENT "577a2c956097e90494be7fc7"
 #define DEFAULTTOKEN "GejGxXUnfRaITqQOeYtJFHOCcHPwxeGw"
 
@@ -30,29 +31,30 @@ int PublishData(jNet *pJnet, int upstreamId)
 		char *out;
 	
 		switch(upstreamId){
-		case 0:
+		case PUB_TYPE_AGENT:
 			root = cJSON_CreateArray();
 			
 			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-			cJSON_AddStringToObject(son1, "hwid", gAgent);
 			cJSON_AddStringToObject(son1, "type", "AGENT");
 			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
 			cJSON_AddNumberToObject(son2, "interval", gEInterval);
-			
+						
 			out=cJSON_PrintUnformatted(root);
 			cJSON_Delete(root);
 
 			rc = jNetPublishT(pJnet, gTopicUp, out);
-			free(out);
+			/*Need to match the cJson_free(cJosn.c)*/
+		  free(out);
+//			out = NULL;		
+			
 			if(rc == 0)
 				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
 			break;
 				
-		case 1:
+		case PUB_TYPE_DHT:
 			root = cJSON_CreateArray();
 			
 			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-			cJSON_AddStringToObject(son1, "hwid", gAgent);
 			cJSON_AddStringToObject(son1, "type", "AGENT");
 			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
 			cJSON_AddNumberToObject(son2, "Tem", gDHT->pickTem);
@@ -62,69 +64,102 @@ int PublishData(jNet *pJnet, int upstreamId)
 			cJSON_Delete(root);
 
 			rc = jNetPublishT(pJnet, gTopicUp, out);
-			free(out);
+			/*Need to match the cJson_free(cJosn.c)*/
+		  free(out);
+//			out = NULL;
 		
-			if(rc == 0)
-				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
-			else  
+			if(rc)
 			{
 				WriteDHTFlash((uint8_t *)gDHT);
 				initDHT();
 			}
+			else  
+				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
 			break;
 			
-			case 2:	
-				while(!ReadDHTFlash((uint8_t *)gDHT))
-				{
-					deltaTime = (HAL_GetTick() - gDHT->pickTime)/1000;
-					root = cJSON_CreateArray();
+		case PUB_TYPE_HISTORY_DHT:	
+			while(!ReadDHTFlash((uint8_t *)gDHT))
+			{
+				deltaTime = (HAL_GetTick() - gDHT->pickTime)/1000;
+				root = cJSON_CreateArray();
 					
-					cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-					cJSON_AddStringToObject(son1, "hwid", gAgent);
-					cJSON_AddStringToObject(son1, "type", "AGENT");
-					if( deltaTime> gEInterval )
-						cJSON_AddNumberToObject(son1, "dtime", deltaTime);
-					cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
-					cJSON_AddNumberToObject(son2, "Tem", gDHT->pickTem);
-					cJSON_AddNumberToObject(son2, "Hem", gDHT->pickHum);
+				cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
+				cJSON_AddStringToObject(son1, "type", "AGENT");
+				if( deltaTime> gEInterval )
+					cJSON_AddNumberToObject(son1, "dtime", deltaTime);
+				cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
+				cJSON_AddNumberToObject(son2, "Tem", gDHT->pickTem);
+				cJSON_AddNumberToObject(son2, "Hem", gDHT->pickHum);
 					
-					out=cJSON_PrintUnformatted(root);
-					cJSON_Delete(root);
+				out=cJSON_PrintUnformatted(root);
+				cJSON_Delete(root);
 
-					rc = jNetPublishT(pJnet, gTopicUp, out);
-					free(out);
-					if(rc == 0){
-						printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
-						modifyAddrOffset(DHT_Flash_Read_Offset_Addr);
-					}
-					else
-					{
-						initDHT();
-						break;
-					}
+				rc = jNetPublishT(pJnet, gTopicUp, out);
+			  /*Need to match the cJson_free(cJosn.c)*/
+		    free(out);
+//			out = NULL;
+				
+				if(rc)
+				{
+					initDHT();
+					break;
 				}
-				rc=0;
-				break;
+				else
+				{
+					printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+					modifyAddrOffset(DHT_Flash_Read_Offset_Addr);
+				}
+			}
+      rc=0;
+			break;
+				
+		case PUB_TYPE_INV:
+			root = cJSON_CreateArray();
+			
+			cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
+			cJSON_AddStringToObject(son1, "dsn", "inv0001");
+			cJSON_AddStringToObject(son1, "type", "inv");
+			cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
+			cJSON_AddNumberToObject(son2, "vpv1", usMRegHoldBuf[0][0]);
+			cJSON_AddNumberToObject(son2, "vpv2", usMRegHoldBuf[0][1]);
+			cJSON_AddNumberToObject(son2, "ipv1", usMRegHoldBuf[0][6]);
+			cJSON_AddNumberToObject(son2, "ipv2", usMRegHoldBuf[0][7]);
+			cJSON_AddNumberToObject(son2, "iar", usMRegHoldBuf[0][72]);
+			cJSON_AddNumberToObject(son2, "ibs", usMRegHoldBuf[0][73]);
+			cJSON_AddNumberToObject(son2, "ict", usMRegHoldBuf[0][74]);		
+			cJSON_AddNumberToObject(son2, "uar", usMRegHoldBuf[0][77]);
+			cJSON_AddNumberToObject(son2, "ubs", usMRegHoldBuf[0][78]);
+			cJSON_AddNumberToObject(son2, "uct", usMRegHoldBuf[0][79]);
+			cJSON_AddNumberToObject(son2, "etoday", (usMRegHoldBuf[0][62]<<16) + usMRegHoldBuf[0][63]);
+			
+			out=cJSON_PrintUnformatted(root);
+			cJSON_Delete(root);
+
+			rc = jNetPublishT(pJnet, gTopicUp, out);
+			/*Need to match the cJson_free(cJosn.c)*/
+		  free(out);
+//			out = NULL;
+			
+			if(rc == 0)
+				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+			break;
 		}
-	
-	printf("rc: %d\n", rc);
 	return rc;
 }
 
 void SetParas(void)
 {
-    strcpy(gHost, DEFAULTHOST);
+		strcpy(gHost, DEFAULTHOST);
     strcpy(gAgent, DEFAULTAGENT);
     strcpy(gToken, DEFAULTTOKEN);
-		
-        
+		       
     sprintf(gTopicDown, "agents/%s/downstream", gAgent);
     sprintf(gTopicUp, "agents/%s/upstream", gAgent);
 }
 
 void UpdateInterval(int newInterval)
 {
-		short sock=0;
+		int sock = PUB_TYPE_AGENT;
     if (newInterval > 0 && newInterval < 3000) {
         gEInterval = newInterval;
 			  printf("UpdateInterval: %d.\n", gEInterval);
@@ -159,7 +194,7 @@ void CheckCmd(cJSON *root, const char *key, void (*func)(cJSON *))
     }
 }
 
-/*Analytical "Fn Code" definitions from developer console*/
+/*Analytical "Fn Code" definitions from developer console(developer.j1st.io)*/
 void ParseMsg(char *payload)
 {
     cJSON * root = cJSON_Parse(payload);
@@ -185,7 +220,7 @@ void messageArrived(MessageData* md)
 void MQTTWork(void *argu)
 {
     int rc, delayS=1;
-	  short sock=2;
+	  int sock = PUB_TYPE_HISTORY_DHT;
     UNUSED(argu);
 
     SetParas();
@@ -222,7 +257,7 @@ void MQTTWork(void *argu)
         do
         {
             /*Demand sending data*/
-            short sock;
+            int sock;
             if (xQueueReceive(xPubQueue, &sock, 1) == pdPASS)
             {
                 printf("Rcvd: xPubQueue %d.\n", sock);

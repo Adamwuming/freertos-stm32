@@ -29,8 +29,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __LWIP_RAW_H__
-#define __LWIP_RAW_H__
+#ifndef LWIP_HDR_RAW_H
+#define LWIP_HDR_RAW_H
 
 #include "lwip/opt.h"
 
@@ -40,6 +40,7 @@
 #include "lwip/def.h"
 #include "lwip/ip.h"
 #include "lwip/ip_addr.h"
+#include "lwip/ip6_addr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,7 +59,7 @@ struct raw_pcb;
  * if it's not used any more.
  */
 typedef u8_t (*raw_recv_fn)(void *arg, struct raw_pcb *pcb, struct pbuf *p,
-    ip_addr_t *addr);
+    const ip_addr_t *addr);
 
 struct raw_pcb {
   /* Common members of all PCB types */
@@ -72,22 +73,32 @@ struct raw_pcb {
   raw_recv_fn recv;
   /* user-supplied argument for the recv callback */
   void *recv_arg;
+#if LWIP_IPV6
+  /* fields for handling checksum computations as per RFC3542. */
+  u16_t chksum_offset;
+  u8_t  chksum_reqd;
+#endif
 };
 
 /* The following functions is the application layer interface to the
    RAW code. */
 struct raw_pcb * raw_new        (u8_t proto);
 void             raw_remove     (struct raw_pcb *pcb);
-err_t            raw_bind       (struct raw_pcb *pcb, ip_addr_t *ipaddr);
-err_t            raw_connect    (struct raw_pcb *pcb, ip_addr_t *ipaddr);
+err_t            raw_bind       (struct raw_pcb *pcb, const ip_addr_t *ipaddr);
+err_t            raw_connect    (struct raw_pcb *pcb, const ip_addr_t *ipaddr);
+
+err_t            raw_sendto     (struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr);
+err_t            raw_send       (struct raw_pcb *pcb, struct pbuf *p);
 
 void             raw_recv       (struct raw_pcb *pcb, raw_recv_fn recv, void *recv_arg);
-err_t            raw_sendto     (struct raw_pcb *pcb, struct pbuf *p, ip_addr_t *ipaddr);
-err_t            raw_send       (struct raw_pcb *pcb, struct pbuf *p);
+
+#if LWIP_IPV6
+struct raw_pcb * raw_new_ip6    (u8_t proto);
+#endif /* LWIP_IPV6 */
 
 /* The following functions are the lower layer interface to RAW. */
 u8_t             raw_input      (struct pbuf *p, struct netif *inp);
-#define raw_init() /* Compatibility define, not init needed. */
+#define raw_init() /* Compatibility define, no init needed. */
 
 #ifdef __cplusplus
 }
@@ -95,4 +106,5 @@ u8_t             raw_input      (struct pbuf *p, struct netif *inp);
 
 #endif /* LWIP_RAW */
 
-#endif /* __LWIP_RAW_H__ */
+#endif /* LWIP_HDR_RAW_H */
+
