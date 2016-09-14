@@ -1,38 +1,96 @@
 #include <stdio.h>
 #include "utask.h"
 
-static int usTick = 90;
+///*printf -> huart3(VCP)*/
+//int fputc(int ch, FILE *f)
+//{
+//  /* Place your implementation of fputc here */
+//  /* e.g. write a character to the USART3 and Loop until the end of transmission */
+//	//HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 0xFFFF);
 
-/*printf -> huart3(VCP)*/
-int fputc(int ch, FILE *f)
-{
-  /* Place your implementation of fputc here */
-  /* e.g. write a character to the USART3 and Loop until the end of transmission */
-  HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 0xFFFF);
+//  return ch;
+//}
 
-  return ch;
-}
+/*printf->JTAG swo*/
+#pragma import(__use_no_semihosting_swi)
 
-///*printf->JTAG swo*/
-//#define ITM_Port8(n)    (*((volatile unsigned char *)(0xE0000000+4*n)))
-//#define ITM_Port16(n)   (*((volatile unsigned short*)(0xE0000000+4*n)))
-//#define ITM_Port32(n)   (*((volatile unsigned long *)(0xE0000000+4*n)))
+#define ITM_Port8(n)    (*((volatile unsigned char *)(0xE0000000+4*n)))
+#define ITM_Port16(n)   (*((volatile unsigned short*)(0xE0000000+4*n)))
+#define ITM_Port32(n)   (*((volatile unsigned long *)(0xE0000000+4*n)))
 
-//#define DEMCR           (*((volatile unsigned long *)(0xE000EDFC)))
-//#define TRCENA          0x01000000
+#define DEMCR           (*((volatile unsigned long *)(0xE000EDFC)))
+#define TRCENA          0x01000000
 
-//struct __FILE { int handle; /* Add whatever you need here */ };
-//FILE __stdout;
-//FILE __stdin;
+struct __FILE { int handle; /* Add whatever you need here */ };
+FILE __stdout;
+FILE __stdin;
 
-//int fputc(int ch, FILE *f) {
+int fputc(int ch, FILE *f) {
 //  if (DEMCR & TRCENA) {
 //    while (ITM_Port32(0) == 0);
 //    ITM_Port8(0) = ch;
 //  }
-//  return(ch);
-//}
+  return(ch);
+}
+	 
+int ferror(FILE *f)
+{
+    /* Your implementation of ferror */
+    return EOF;
+}
 
+void _ttywrch(int c)
+{
+    fputc(c, stdout);
+}
+
+int __backspace()
+{
+    return 0;
+}
+
+void _sys_exit(int return_code)
+{
+label:
+    goto label; /* endless loop */
+}
+
+//=============================================
+void LED_On(int Led)
+{
+	switch(Led)
+	{
+		case 1:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_SET); break;
+		case 2:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_SET); break;
+		case 3:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_9, GPIO_PIN_SET); break;
+		default: return;
+	}
+}
+
+void LED_Off(int Led)
+{
+  switch(Led)
+	{
+		case 1:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_RESET); break;
+		case 2:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_RESET); break;
+		case 3:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_9, GPIO_PIN_RESET); break;
+		default: return;
+	}
+}
+
+void LED_Toggle(int Led)
+{
+  switch(Led)
+	{
+		case 1:HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_7); break;
+		case 2:HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_8); break;
+		case 3:HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_9); break;
+		default: return;
+	}
+}
+
+//===========================================
+static int usTick = 90;
 
 void HAL_CalTick(void)
 {
@@ -94,38 +152,3 @@ unsigned int BitLow_Count(unsigned char *v, int size)
     
     return (8*size - num);
 }
-
-
-void LED_On(int Led)
-{
-	switch(Led)
-	{
-		case 1:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_SET); break;
-		case 2:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_SET); break;
-		case 3:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_9, GPIO_PIN_SET); break;
-		default: return;
-	}
-}
-
-void LED_Off(int Led)
-{
-  switch(Led)
-	{
-		case 1:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_RESET); break;
-		case 2:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_RESET); break;
-		case 3:HAL_GPIO_WritePin(GPIOE, GPIO_PIN_9, GPIO_PIN_RESET); break;
-		default: return;
-	}
-}
-
-void LED_Toggle(int Led)
-{
-  switch(Led)
-	{
-		case 1:HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_7); break;
-		case 2:HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_8); break;
-		case 3:HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_9); break;
-		default: return;
-	}
-}
-

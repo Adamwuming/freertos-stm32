@@ -6,7 +6,7 @@
 
 #include "user_mb_app.h"
 /*Private variables*/
-#define MAXFILENAME 80
+#define MAXFILENAME 79
 
 #define DEFAULTPORT 1883
 //#define DEFAULTHOST "developer.j1st.io"
@@ -19,10 +19,9 @@
 extern int jNetSubscribeT(jNet *, const char *, enum QoS, messageHandler);
 
 int gEInterval=300, gFinish=0, gConnect=0;
-int gPort=DEFAULTPORT;
-char gHost[MAXFILENAME+1];
-char gAgent[MAXFILENAME+1], gToken[MAXFILENAME+1];
-char gTopicUp[MAXFILENAME+1], gTopicDown[MAXFILENAME+1];
+const char *gTopicUp = "jsonUp";
+char gTopicDown[MAXFILENAME+1];
+
 
 int PublishData(jNet *pJnet, int upstreamId)
 {
@@ -48,7 +47,8 @@ int PublishData(jNet *pJnet, int upstreamId)
 //			out = NULL;		
 			
 			if(rc == 0)
-				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+				sprintf(gTmp, "Published on topic %s: %s, result %d.\n", gTopicUp, out, rc); 
+				Print(gTmp);
 			break;
 				
 		case PUB_TYPE_DHT:
@@ -73,8 +73,10 @@ int PublishData(jNet *pJnet, int upstreamId)
 				WriteDHTFlash((uint8_t *)gDHT);
 				initDHT();
 			}
-			else  
-				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+			else{  
+				sprintf(gTmp, "Published on topic %s: %s, result %d.\n", gTopicUp, out, rc); 
+				Print(gTmp);
+			}
 			break;
 			
 		case PUB_TYPE_HISTORY_DHT:	
@@ -106,7 +108,8 @@ int PublishData(jNet *pJnet, int upstreamId)
 				}
 				else
 				{
-					printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+					sprintf(gTmp, "Published on topic %s: %s, result %d.\n", gTopicUp, out, rc); 
+				  Print(gTmp);
 					modifyAddrOffset(DHT_Flash_Read_Offset_Addr);
 				}
 			}
@@ -140,21 +143,13 @@ int PublishData(jNet *pJnet, int upstreamId)
 		  free(out);
 //			out = NULL;
 			
-			if(rc == 0)
-				printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+			if(rc == 0){
+				sprintf(gTmp, "Published on topic %s: %s, result %d.\n", gTopicUp, out, rc); 
+				Print(gTmp);
+			}
 			break;
 		}
 	return rc;
-}
-
-void SetParas(void)
-{
-		strcpy(gHost, DEFAULTHOST);
-    strcpy(gAgent, DEFAULTAGENT);
-    strcpy(gToken, DEFAULTTOKEN);
-		       
-    sprintf(gTopicDown, "agents/%s/downstream", gAgent);
-    sprintf(gTopicUp, "agents/%s/upstream", gAgent);
 }
 
 void UpdateInterval(int newInterval)
@@ -162,7 +157,8 @@ void UpdateInterval(int newInterval)
 		int sock = PUB_TYPE_AGENT;
     if (newInterval > 0 && newInterval < 3000) {
         gEInterval = newInterval;
-			  printf("UpdateInterval: %d.\n", gEInterval);
+				sprintf(gTmp, "UpdateInterval: %d.\n", gEInterval); 
+				Print(gTmp);
 				xQueueSendToBack(xPubQueue, &sock, 0);
     }
 }
@@ -173,7 +169,8 @@ void AnaInterval(cJSON *item)
     if (value != NULL && value->type == cJSON_Number)
     {
         int interval  = (int)(value->valuedouble + 0.0000001);
-        printf("Rcvd: sec %d.\n", interval);
+				sprintf(gTmp, "Rcvd: sec %d.\n", interval); 
+				Print(gTmp);
         UpdateInterval(interval);
     }
 }
@@ -189,7 +186,7 @@ void CheckCmd(cJSON *root, const char *key, void (*func)(cJSON *))
     {
         cJSON *sub = cJSON_GetObjectItem(item, "hwid");
         if (sub != NULL && sub->type == cJSON_String &&
-                !strcmp(gAgent, sub->valuestring))
+                !strcmp(DEFAULTAGENT, sub->valuestring))
             func(item);        
     }
 }
@@ -212,33 +209,37 @@ void messageArrived(MessageData* md)
 
     // TODO: Safer
     payload[(int)message->payloadlen] = 0;
-    printf("Message arrived on topic %.*s: %.*s\n", md->topicName->lenstring.len, md->topicName->lenstring.data, md->message->payloadlen, md->message->payload);
-
+		sprintf(gTmp, "Message arrived on topic %.*s: %.*s\n", md->topicName->lenstring.len, 
+	      md->topicName->lenstring.data, md->message->payloadlen, md->message->payload); 
+		Print(gTmp);
     ParseMsg(payload);
 }
 
-void MQTTWork(void *argu)
+void vMQTTTask(void *argu)
 {
     int rc, delayS=1;
 	  int sock = PUB_TYPE_HISTORY_DHT;
     UNUSED(argu);
 
-    SetParas();
+    sprintf(gTopicDown, "agents/%s/downstream", DEFAULTAGENT);
 	
     jNet * pJnet = jNetInit();
     if (NULL == pJnet)
     {
-        printf("Cannot allocate jnet resources.");
+
+				sprintf(gTmp, "Cannot allocate jnet resources."); 
+		    Print(gTmp);
         return;
     }
 	
     while(!gFinish)
     {
-				rc = jNetConnect(pJnet, gHost, gPort, gAgent, gToken);
+				rc = jNetConnect(pJnet, DEFAULTHOST, DEFAULTPORT, DEFAULTAGENT, DEFAULTTOKEN);
         if (rc != 0 )
 				{
 					/*rc: No IP address or stack not ready = -1, OKDONE = 0 , AGENT_ID & AGENT_TOKEN is authorized = 5*/
-					printf("Cannot connect to :%s, rc: %d. Waiting for %d seconds and retry.\n", gHost, rc, delayS);
+					sprintf(gTmp, "Cannot connect to :%s, rc: %d. Waiting for %d seconds and retry.\n", DEFAULTHOST, rc, delayS); 
+		      Print(gTmp);
 					osDelay(delayS*1000);
 					delayS *= 2;
 					if(delayS > 30) delayS = 30;
@@ -247,12 +248,12 @@ void MQTTWork(void *argu)
         delayS = 1;
 				gConnect = 1;
 				xQueueSendToBack(xPubQueue, &sock, 0);
-        printf("Connect to J1ST.IO server %s:%d succeeded.\n", gHost, gPort);
-    
+			  sprintf(gTmp, "Connect to J1ST.IO server %s:%d succeeded.\n", DEFAULTHOST, DEFAULTPORT); 
+		    Print(gTmp);    
         rc = jNetSubscribeT(pJnet, gTopicDown, QOS2, messageArrived);
         if (rc != 0) goto clean;
-        printf("Subscribe the topic of \"%s\" result %d.\n", gTopicDown, rc);
-
+			  sprintf(gTmp, "Subscribe the topic of \"%s\" result %d.\n", gTopicDown, rc); 
+		    Print(gTmp);  
 				if (PublishData(pJnet, 0) != 0) goto clean;
         do
         {
@@ -260,7 +261,8 @@ void MQTTWork(void *argu)
             int sock;
             if (xQueueReceive(xPubQueue, &sock, 1) == pdPASS)
             {
-                printf("Rcvd: xPubQueue %d.\n", sock);
+				        sprintf(gTmp, "Rcvd: xPubQueue %d.\n", sock); 
+		            Print(gTmp);  							
                 if (PublishData(pJnet, sock) != 0) goto clean;
             }
             /* Make jNet library do background tasks, send and receive messages(PING/PONG) regularly every 1 sec */
@@ -271,7 +273,8 @@ void MQTTWork(void *argu)
 		clean:
 				gConnect=0;
         jNetDisconnect(pJnet);
-				printf("Connection stopped.\n");
+				sprintf(gTmp, "Connection stopped.\n"); 
+		    Print(gTmp);  		
     }
     jNetFree(pJnet);        
 }

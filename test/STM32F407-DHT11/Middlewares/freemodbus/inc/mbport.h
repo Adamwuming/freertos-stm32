@@ -129,6 +129,8 @@ INLINE BOOL     xMBMasterPortSerialGetByte( UCHAR * pucByte );
 
 INLINE BOOL     xMBMasterPortSerialPutByte( UCHAR ucByte );
 
+INLINE BOOL     xMBMasterPortSerialPutADU(uint8_t *pData, uint16_t Size);
+
 /* ----------------------- Timers functions ---------------------------------*/
 BOOL            xMBPortTimersInit( USHORT usTimeOut50us );
 

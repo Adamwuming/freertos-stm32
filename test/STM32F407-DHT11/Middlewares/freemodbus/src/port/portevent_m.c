@@ -47,10 +47,10 @@ static portBASE_TYPE xHigherPriorityTaskWoken;
 BOOL
 xMBMasterPortEventInit( void )
 {
-	  ENTER_CRITICAL_SECTION(  );
+	  EnterCriticalSection(  );
 		xMBEventQueue = xQueueCreate(1, sizeof(int));
 		xMBReqQueue = xQueueCreate(1, sizeof(int));
-		EXIT_CRITICAL_SECTION(  );
+		ExitCriticalSection(  );
 	
     return TRUE;
 }
@@ -58,7 +58,7 @@ xMBMasterPortEventInit( void )
 BOOL
 xMBMasterPortEventPost( eMBMasterEventType eEvent )
 {
-		ENTER_CRITICAL_SECTION(  );
+		EnterCriticalSection(  );
 		mb_event = eEvent;
 
 		xHigherPriorityTaskWoken = pdFALSE;
@@ -72,7 +72,7 @@ xMBMasterPortEventPost( eMBMasterEventType eEvent )
 				//printf("Send xMBReqQueue: %d\n", mb_event);
 			xQueueSendToBackFromISR(xMBReqQueue, &mb_event, &xHigherPriorityTaskWoken);
 		}
-		EXIT_CRITICAL_SECTION(  );
+		ExitCriticalSection(  );
 		
 		return TRUE;
 }
@@ -229,7 +229,8 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish( void )
 		int eQueue;  
 		eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
 	
-		xQueueReceive(xMBReqQueue, &eQueue, portMAX_DELAY);
+		if(xQueueReceive(xMBReqQueue, &eQueue, 5000/portTICK_RATE_MS) != pdPASS)
+			return MB_MRE_TIMEDOUT;
 		//printf("Rec xMBReqQueue: %d\n", eQueue);
 		switch (eQueue)
     {

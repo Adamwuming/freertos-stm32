@@ -91,7 +91,7 @@ eMBMasterRTUInit(ULONG ulBaudRate, eMBParity eParity )
     eMBErrorCode    eStatus = MB_ENOERR;
     ULONG           usTimerT35_50us;
 
-    ENTER_CRITICAL_SECTION(  );
+    EnterCriticalSection(  );
 
     /* Modbus RTU uses 8 Databits. */
     if( xMBMasterPortSerialInit(ulBaudRate, 8, eParity ) != TRUE )
@@ -124,7 +124,7 @@ eMBMasterRTUInit(ULONG ulBaudRate, eMBParity eParity )
             eStatus = MB_EPORTERR;
         }
     }
-    EXIT_CRITICAL_SECTION(  );
+    ExitCriticalSection(  );
 
     return eStatus;
 }
@@ -132,7 +132,7 @@ eMBMasterRTUInit(ULONG ulBaudRate, eMBParity eParity )
 void
 eMBMasterRTUStart( void )
 {
-    ENTER_CRITICAL_SECTION(  );
+    EnterCriticalSection(  );
     /* Initially the receiver is in the state STATE_M_RX_INIT. we start
      * the timer and if no character is received within t3.5 we change
      * to STATE_M_RX_IDLE. This makes sure that we delay startup of the
@@ -142,16 +142,16 @@ eMBMasterRTUStart( void )
     vMBMasterPortSerialEnable( TRUE, FALSE );
     vMBMasterPortTimersT35Enable(  );
 	
-    EXIT_CRITICAL_SECTION(  );
+    ExitCriticalSection(  );
 }
 
 void
 eMBMasterRTUStop( void )
 {
-    ENTER_CRITICAL_SECTION(  );
+    EnterCriticalSection(  );
     vMBMasterPortSerialEnable( FALSE, FALSE );
     vMBMasterPortTimersDisable(  );
-    EXIT_CRITICAL_SECTION(  );
+    ExitCriticalSection(  );
 }
 
 eMBErrorCode
@@ -159,7 +159,7 @@ eMBMasterRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLengt
 {
     eMBErrorCode    eStatus = MB_ENOERR;
 
-    ENTER_CRITICAL_SECTION(  );
+    EnterCriticalSection(  );
     assert_param( usMasterRcvBufferPos < MB_SER_PDU_SIZE_MAX );
 
     /* Length and CRC check */
@@ -184,7 +184,7 @@ eMBMasterRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLengt
         eStatus = MB_EIO;
     }
 
-    EXIT_CRITICAL_SECTION(  );
+    ExitCriticalSection(  );
     return eStatus;
 }
 
@@ -196,7 +196,7 @@ eMBMasterRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength 
 
     if ( ucSlaveAddress > MB_MASTER_TOTAL_SLAVE_NUM ) return MB_EINVAL;
 
-    ENTER_CRITICAL_SECTION(  );
+    EnterCriticalSection(  );
 
     /* Check if the receiver is still in idle state. If not we where to
      * slow with processing the received frame and the master sent another
@@ -225,7 +225,7 @@ eMBMasterRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength 
     {
         eStatus = MB_EIO;
     }
-    EXIT_CRITICAL_SECTION(  );
+    ExitCriticalSection(  );
     return eStatus;
 }
 
@@ -239,7 +239,6 @@ xMBMasterRTUReceiveFSM( void )
 
     /* Always read the character. */
     ( void )xMBMasterPortSerialGetByte( ( UCHAR * ) & ucByte );
-			//printf("R:%x\n", ucByte);
 
     switch ( eRcvState )
     {
@@ -283,7 +282,6 @@ xMBMasterRTUReceiveFSM( void )
          * ignored.
          */
     case STATE_M_RX_RCV:
-			//printf("%d\n", usMasterRcvBufferPos);
         if( usMasterRcvBufferPos < MB_SER_PDU_SIZE_MAX )
         {
             ucMasterRTURcvBuf[usMasterRcvBufferPos++] = ucByte;

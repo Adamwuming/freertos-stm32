@@ -3,18 +3,23 @@
 
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
-#include <stdio.h>
 
 /* ----------------------- Defines ------------------------------------------*/
-#define PUB_TYPE_AGENT 								0
-#define PUB_TYPE_DHT 									1
-#define PUB_TYPE_HISTORY_DHT					2
-#define PUB_TYPE_INV 									3
+#define __BUILD_	0x16090913
+#define PROMPT		"\n> "
+
+#define PUB_TYPE_AGENT                      0
+#define PUB_TYPE_DHT                        1
+#define PUB_TYPE_HISTORY_DHT                2
+#define PUB_TYPE_INV                        3
 
 /*task*/
-extern void MQTTWork(void *argu);
-extern void DHT11_Task(void *argu);
-extern void MBTask(void *argu);
+extern xSemaphoreHandle xPrnDMAMutex;
+extern xTaskHandle xPrnHandle, xMQTTHandle, xDHTHandle, xMBPHandle;
+extern void vDaemonPrint(void *argu);
+extern void vMQTTTask(void *argu);
+extern void vDHTTask(void *argu);
+extern void vMBPTask(void *argu);
 
 extern xQueueHandle xPubQueue;
 
@@ -23,6 +28,10 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 
 /*func*/
+#define PRN_ONE_SIZE	128
+extern char gTmp[PRN_ONE_SIZE];
+extern int Print(const char *s);
+
 extern void HAL_CalTick(void);
 extern void HAL_DelayUs(int nDelay);
 
@@ -55,4 +64,8 @@ extern int WriteDHTFlash(unsigned char *pTxData);
 extern int ReadDHTFlash(unsigned char *pRxData);
 
 extern int gConnect;
+
+#define ENTER_CRITICAL_SECTION( )   __disable_irq()
+#define EXIT_CRITICAL_SECTION( )    __enable_irq()
+
 #endif
