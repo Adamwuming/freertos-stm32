@@ -18,14 +18,17 @@
  *
  * File: $Id: portserial_m.c,v 1.60 2013/08/13 15:07:05 Armink add Master Functions $
  */
+/* ----------------------- System includes ----------------------------------*/
+#include <string.h>
 
-#include "port.h"
+/* ----------------------- Platform includes --------------------------------*/
+#include "stm32f4xx_hal.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
 #include "mbport.h"
-#include "utask.h"
-#include "string.h"
+#include "port.h"
+
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 /* ----------------------- Static variables ---------------------------------*/
 
@@ -74,8 +77,8 @@ void vMBMasterPortClose(void)
 
 BOOL xMBMasterPortSerialPutByte(UCHAR ucByte)
 {
-	HAL_UART_Transmit(&huart1, &ucByte, 1, 3);
-  return TRUE;
+  if(HAL_UART_Transmit(&huart1, &ucByte, 1, 3) == HAL_OK) return TRUE;
+  else return FALSE;
 }
 
 BOOL xMBMasterPortSerialPutADU(uint8_t *pData, uint16_t Size)
@@ -86,8 +89,8 @@ BOOL xMBMasterPortSerialPutADU(uint8_t *pData, uint16_t Size)
 
 BOOL xMBMasterPortSerialGetByte(UCHAR * pucByte)
 {
-  HAL_UART_Receive(&huart1, pucByte, 1, 3);
-  return TRUE;
+  if(HAL_UART_Receive(&huart1, pucByte, 1, 3) == HAL_OK)  return TRUE;
+  else return FALSE;
 }
 
 /* 

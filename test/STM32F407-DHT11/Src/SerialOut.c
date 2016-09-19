@@ -3,18 +3,12 @@
 
 #include "utask.h"
 
-#define CON_RCV_SIZE	60
-#define PRN_BUF_SIZE	200
-
 char gTmp[PRN_ONE_SIZE];
 
 // U3 Send
 static char sPrnBuffer[PRN_BUF_SIZE];
 static int spTail = 0;
 volatile static int spFull = 0, spHead = 0; 
-
-// Semaphores
-xSemaphoreHandle xPrnDMAMutex;
 
 // UART1: Modbus
 // UART3: Text console: Giveup control as soon as possible
@@ -175,6 +169,7 @@ void vDaemonPrint(void *pvPara)
 	}
 }
 
+//=================================================
 int dbgWrite(const char *s, uint32_t ulIdx)
 {
 	int size = 0, head = spHead;

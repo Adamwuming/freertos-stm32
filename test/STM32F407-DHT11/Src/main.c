@@ -54,8 +54,9 @@ osThreadId defaultTaskHandle;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-xTaskHandle xPrnHandle, xMQTTHandle, xDHTHandle, xMBPHandle;
+xTaskHandle xPrnHandle, xMQTTHandle, xDHTHandle, xMBPHandle, xCmdAnalyzeHandle;
 xQueueHandle xPubQueue;
+xSemaphoreHandle xPrnDMAMutex;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,7 +73,13 @@ void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-extern void SPI_Flash_WAKEUP(void);
+extern void vDaemonPrint(void *);
+extern void vMQTTTask(void *);
+extern void vDHTTask(void *);
+extern void vMBPTask(void *);
+extern void vTaskCmdAnalyze(void *);
+
+extern void SPI_Flash_WakeUp(void);
 extern void ReadInvSN(void);
 /* USER CODE END PFP */
 
@@ -108,7 +115,7 @@ int main(void)
   HAL_CalTick();
   HAL_DelayUs(400);
   
-  SPI_Flash_WAKEUP();
+  SPI_Flash_WakeUp();
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -132,10 +139,11 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  xTaskCreate(vDaemonPrint, "Print", 80, NULL, 2, &xPrnHandle);
+  xTaskCreate(vDaemonPrint, "DaemonPrint", 80, NULL, 2, &xPrnHandle);
   xTaskCreate(vMQTTTask, "MQTT", 256, NULL, 2, &xMQTTHandle);
-  xTaskCreate(vDHTTask, "DHT11", 80, NULL, 2, &xDHTHandle);
-  xTaskCreate(vMBPTask, "Modbus", 128, NULL, 2, &xMBPHandle);
+  xTaskCreate(vDHTTask, "DHT11", 256, NULL, 2, &xDHTHandle);
+  xTaskCreate(vMBPTask, "Modbus", 96, NULL, 2, &xMBPHandle);
+	xTaskCreate(vTaskCmdAnalyze, "CmdAna", 128, NULL, 1, &xCmdAnalyzeHandle);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -270,7 +278,7 @@ static void MX_TIM7_Init(void)
   htim7.Instance = TIM7;
   htim7.Init.Prescaler = 59;
   htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim7.Init.Period = 1750;
+  htim7.Init.Period = 1499;
   if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
   {
     Error_Handler();
@@ -290,7 +298,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -329,8 +337,8 @@ static void MX_USART3_UART_Init(void)
 static void MX_DMA_Init(void) 
 {
   /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
   __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
   /* DMA1_Stream3_IRQn interrupt configuration */
@@ -434,10 +442,11 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
 
   /* USER CODE BEGIN 5 */
+	__HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
   Print("\n\nEthernet MB bridge, build ");	
   sprintf(gTmp, "%x\n%s", __BUILD_, PROMPT); 
   Print(gTmp);
-
+  
   osDelay(1);
   /* Infinite loop */
   for(;;)
@@ -445,7 +454,7 @@ void StartDefaultTask(void const * argument)
     LED_Toggle(1);
     //sprintf(gTmp, "RTOS FreeHeapSize %d\n",xPortGetFreeHeapSize());
     //Print(gTmp);
-	ReadInvSN();
+		ReadInvSN();
     osDelay(10000);
   }
   /* USER CODE END 5 */ 

@@ -258,8 +258,7 @@ void vDHTTask(void *argu)
   {
     osDelay(1);
     if ((HAL_GetTick() - tickstart) >= 1000 * gEInterval)
-	{
-      LED_Toggle(2);
+	 {
       DHT11_ReadData();
       tickstart = HAL_GetTick();
       xQueueSendToBack(xPubQueue, &sock, 0);	//	json type, sock=3

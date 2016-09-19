@@ -40,6 +40,11 @@
 extern void prvvTIMERExpiredISR(void);
 extern void prvvUARTTxReadyISR(void);
 extern void prvvUARTRxISR(void);
+
+extern void AddTIM3Counter(void);
+extern void LED_Toggle(int Led);
+extern void FillConsoleBuf(char);
+extern void FillModemBuf(char);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -251,7 +256,14 @@ void USART1_IRQHandler(void)
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
-
+  uint32_t tmp1, tmp2;	
+  tmp1 = __HAL_UART_GET_FLAG(&huart3, UART_FLAG_RXNE);
+  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart3, UART_IT_RXNE);
+  if((tmp1 != RESET) && (tmp2 != RESET))
+  {
+		LED_Toggle(2);
+    FillConsoleBuf((huart3.Instance->DR & (uint8_t)0x00FFU));
+  }
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */

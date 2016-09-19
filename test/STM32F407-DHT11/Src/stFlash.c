@@ -415,7 +415,7 @@ void SPI_Flash_PowerDown(void)
   * 返 回 值: 无
   * 说    明：无
   */
-void SPI_Flash_WAKEUP(void)   
+void SPI_Flash_WakeUp(void)   
 {
   /* Select the FLASH: Chip Select low */
   FLASH_SPI_CS_ENABLE();
