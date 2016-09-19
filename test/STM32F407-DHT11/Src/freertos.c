@@ -36,13 +36,13 @@
 #include "task.h"
 
 /* USER CODE BEGIN Includes */     
-
+#include "utask.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
 
 /* USER CODE BEGIN Variables */
-
+static unsigned short usTSHigh=0;
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -52,9 +52,30 @@
 /* USER CODE END FunctionPrototypes */
 
 /* Hook prototypes */
+void configureTimerForRunTimeStats(void);
+unsigned long getRunTimeCounterValue(void);
+
+/* USER CODE BEGIN 1 */
+extern TIM_HandleTypeDef htim7;
+/* Functions needed when configGENERATE_RUN_TIME_STATS is on */
+void configureTimerForRunTimeStats(void)
+{
+	__HAL_TIM_SetCounter(&htim7, 0);
+	__HAL_TIM_ENABLE(&htim7);	
+}
+
+unsigned long getRunTimeCounterValue(void)
+{
+	unsigned int TS = (usTSHigh<<15);
+	return (TS | __HAL_TIM_GetCounter(&htim7));
+}
+/* USER CODE END 1 */
 
 /* USER CODE BEGIN Application */
-     
+void AddTIM3Counter(void)
+{
+	usTSHigh++;
+}
 /* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

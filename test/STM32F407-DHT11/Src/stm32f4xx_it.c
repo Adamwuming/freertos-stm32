@@ -40,6 +40,11 @@
 extern void prvvTIMERExpiredISR(void);
 extern void prvvUARTTxReadyISR(void);
 extern void prvvUARTRxISR(void);
+
+extern void AddTIM3Counter(void);
+extern void LED_Toggle(int Led);
+extern void FillConsoleBuf(char);
+extern void FillModemBuf(char);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -47,6 +52,7 @@ extern ETH_HandleTypeDef heth;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim7;
+extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart3_tx;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
@@ -188,15 +194,16 @@ void DMA1_Stream3_IRQHandler(void)
 void TIM4_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM4_IRQn 0 */
-	if(__HAL_TIM_GET_FLAG(&htim4, TIM_FLAG_UPDATE) != RESET)
+  if(__HAL_TIM_GET_FLAG(&htim4, TIM_FLAG_UPDATE) != RESET)
   {
     if(__HAL_TIM_GET_IT_SOURCE(&htim4, TIM_IT_UPDATE) !=RESET)
     {
-			//printf("T4_UP_IT\n");
+      //sprintf(gTmp, "T4_UP_IT\n");
+      //Print(gTmp);
       __HAL_TIM_CLEAR_IT(&htim4, TIM_IT_UPDATE);
       prvvTIMERExpiredISR();
     }
-	}
+  }
   /* USER CODE END TIM4_IRQn 0 */
   HAL_TIM_IRQHandler(&htim4);
   /* USER CODE BEGIN TIM4_IRQn 1 */
@@ -226,17 +233,15 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 0 */
   if(((__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE)) != RESET) && ((__HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_RXNE)) != RESET))
   { 
-		//printf("U1_RX_IT\n");
-		prvvUARTRxISR();
-		HAL_NVIC_ClearPendingIRQ(USART1_IRQn);
+    prvvUARTRxISR();
+    HAL_NVIC_ClearPendingIRQ(USART1_IRQn);
   }
 
-	if(((__HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_TXE)) != RESET) && ((__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TXE)) != RESET))
-	{
-		//printf("U1_TX_IT\n");
-		prvvUARTTxReadyISR();
-		HAL_NVIC_ClearPendingIRQ(USART1_IRQn);
-	}
+  if(((__HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_TXE)) != RESET) && ((__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TXE)) != RESET))
+  {
+    prvvUARTTxReadyISR();
+    HAL_NVIC_ClearPendingIRQ(USART1_IRQn);
+  }
 	
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
@@ -251,7 +256,14 @@ void USART1_IRQHandler(void)
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
-
+  uint32_t tmp1, tmp2;	
+  tmp1 = __HAL_UART_GET_FLAG(&huart3, UART_FLAG_RXNE);
+  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart3, UART_IT_RXNE);
+  if((tmp1 != RESET) && (tmp2 != RESET))
+  {
+		LED_Toggle(2);
+    FillConsoleBuf((huart3.Instance->DR & (uint8_t)0x00FFU));
+  }
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */
@@ -299,6 +311,20 @@ void ETH_IRQHandler(void)
   /* USER CODE BEGIN ETH_IRQn 1 */
 
   /* USER CODE END ETH_IRQn 1 */
+}
+
+/**
+* @brief This function handles DMA2 stream7 global interrupt.
+*/
+void DMA2_Stream7_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream7_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart1_tx);
+  /* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream7_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

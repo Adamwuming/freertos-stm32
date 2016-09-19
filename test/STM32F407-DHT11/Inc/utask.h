@@ -1,28 +1,40 @@
-#ifndef _SBY_TASKS_
-#define _SBY_TASKS_
+#ifndef _YMT_TASKS_
+#define _YMT_TASKS_
 
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
-#include <stdio.h>
 
 /* ----------------------- Defines ------------------------------------------*/
-#define PUB_TYPE_AGENT 								0
-#define PUB_TYPE_DHT 									1
-#define PUB_TYPE_HISTORY_DHT					2
-#define PUB_TYPE_INV 									3
+#define __BUILD_	0x16090913
+#define PROMPT		"\n> "
 
-/*task*/
-extern void MQTTWork(void *argu);
-extern void DHT11_Task(void *argu);
-extern void MBTask(void *argu);
+/*Json payload type*/
+#define PUB_TYPE_AGENT                      0
+#define PUB_TYPE_DHT                        1
+#define PUB_TYPE_HISTORY_DHT                2
+#define PUB_TYPE_INV                        3
 
+/*FreeRTOS*/
+extern xTaskHandle xPrnHandle, xMQTTHandle, xDHTHandle, xMBPHandle, \
+	xCmdAnalyzeHandle;
 extern xQueueHandle xPubQueue;
+extern xSemaphoreHandle xPrnDMAMutex;
 
-/*Private variables*/
+/*ST Peripheral*/
+#define ENTER_CRITICAL_SECTION( )   __disable_irq()
+#define EXIT_CRITICAL_SECTION( )    __enable_irq()
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 
-/*func*/
+/*Print*/
+#define PRN_ONE_SIZE	128
+#define CON_RCV_SIZE	60
+#define PRN_BUF_SIZE	500
+
+extern char gTmp[PRN_ONE_SIZE];
+extern int Print(const char *s);
+
+/*Misc Func*/
 extern void HAL_CalTick(void);
 extern void HAL_DelayUs(int nDelay);
 
@@ -32,27 +44,33 @@ extern void LED_On(int Led);
 extern void LED_Off(int Led);
 extern void LED_Toggle(int Led);
 
-/*DHT11 12byte*/
+/*DHT11 + Flash*/
 struct DHT11
 {
+  /*STRUCT 12byte*/
 	int pickTem;		//Temperature integer part
 	int pickHum;		//Humidity integer part
 	int pickTime;
-	
 };
+
+extern int gConnect;
+
+extern struct DHT11 gDHT[1];
+extern void initDHT(void);
+
 /*42byte offset = 341 * DHT_DATA_BYTE_SIZE = 4KB data */
 #define DHT_Flash_Base_Addr						0
 #define DHT_Flash_Write_Offset_Addr		0x002A00
 #define DHT_Flash_Read_Offset_Addr		0x002B00
 #define DHT_DATA_BYTE_SIZE 						(3*4)
 
-extern struct DHT11 gDHT[1];
 extern void wDHT(int pickTime, int pickTem, int pickHum);
-extern void initDHT(void);
 extern unsigned int getAddrOffset(unsigned int addr);
 extern int modifyAddrOffset(unsigned int addr);
 extern int WriteDHTFlash(unsigned char *pTxData);
 extern int ReadDHTFlash(unsigned char *pRxData);
 
-extern int gConnect;
+/*INV Flash*/
+
+
 #endif

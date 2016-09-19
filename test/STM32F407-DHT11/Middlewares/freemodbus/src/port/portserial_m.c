@@ -18,12 +18,16 @@
  *
  * File: $Id: portserial_m.c,v 1.60 2013/08/13 15:07:05 Armink add Master Functions $
  */
+/* ----------------------- System includes ----------------------------------*/
+#include <string.h>
 
-#include "port.h"
+/* ----------------------- Platform includes --------------------------------*/
+#include "stm32f4xx_hal.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
 #include "mbport.h"
+#include "port.h"
 
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 /* ----------------------- Static variables ---------------------------------*/
@@ -56,7 +60,7 @@ void vMBMasterPortSerialEnable(BOOL xRxEnable, BOOL xTxEnable)
         __HAL_UART_DISABLE_IT(&huart1, UART_IT_RXNE);
     }
     
-		if(TRUE==xTxEnable)
+	if(TRUE==xTxEnable)
     {
         __HAL_UART_ENABLE_IT(&huart1, UART_IT_TXE);
     }
@@ -73,14 +77,20 @@ void vMBMasterPortClose(void)
 
 BOOL xMBMasterPortSerialPutByte(UCHAR ucByte)
 {
-		HAL_UART_Transmit(&huart1, &ucByte, 1, 1);
-    return TRUE;
+  if(HAL_UART_Transmit(&huart1, &ucByte, 1, 3) == HAL_OK) return TRUE;
+  else return FALSE;
+}
+
+BOOL xMBMasterPortSerialPutADU(uint8_t *pData, uint16_t Size)
+{
+	HAL_UART_Transmit_DMA(&huart1, pData, Size);
+  return TRUE;
 }
 
 BOOL xMBMasterPortSerialGetByte(UCHAR * pucByte)
 {
-    HAL_UART_Receive(&huart1, pucByte, 1, 1);
-    return TRUE;
+  if(HAL_UART_Receive(&huart1, pucByte, 1, 3) == HAL_OK)  return TRUE;
+  else return FALSE;
 }
 
 /* 

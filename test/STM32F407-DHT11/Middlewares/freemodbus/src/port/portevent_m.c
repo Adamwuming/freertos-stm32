@@ -39,7 +39,7 @@
 /* ----------------------- Variables ----------------------------------------*/
 xQueueHandle xMBEventQueue;
 xQueueHandle xMBReqQueue;
-xQueueHandle xMasterRunResQueue;
+//xQueueHandle xMasterRunResQueue;
 
 static int mb_event;
 static portBASE_TYPE xHigherPriorityTaskWoken;
@@ -47,10 +47,10 @@ static portBASE_TYPE xHigherPriorityTaskWoken;
 BOOL
 xMBMasterPortEventInit( void )
 {
-	  ENTER_CRITICAL_SECTION(  );
+	  EnterCriticalSection(  );
 		xMBEventQueue = xQueueCreate(1, sizeof(int));
 		xMBReqQueue = xQueueCreate(1, sizeof(int));
-		EXIT_CRITICAL_SECTION(  );
+		ExitCriticalSection(  );
 	
     return TRUE;
 }
@@ -58,21 +58,19 @@ xMBMasterPortEventInit( void )
 BOOL
 xMBMasterPortEventPost( eMBMasterEventType eEvent )
 {
-		ENTER_CRITICAL_SECTION(  );
+		EnterCriticalSection(  );
 		mb_event = eEvent;
 
 		xHigherPriorityTaskWoken = pdFALSE;
 		if(mb_event <= EV_MASTER_ERROR_PROCESS)
 		{
-				//printf("Send xMBEventQueue: %d\n", mb_event);
 			xQueueSendToBackFromISR(xMBEventQueue, &mb_event, &xHigherPriorityTaskWoken);
 		}
 		else
 		{
-				//printf("Send xMBReqQueue: %d\n", mb_event);
 			xQueueSendToBackFromISR(xMBReqQueue, &mb_event, &xHigherPriorityTaskWoken);
 		}
-		EXIT_CRITICAL_SECTION(  );
+		ExitCriticalSection(  );
 		
 		return TRUE;
 }
@@ -82,7 +80,6 @@ xMBMasterPortEventGet( int *eEvent )
 {
 		int eQueue;
 		xQueueReceive(xMBEventQueue, &eQueue, portMAX_DELAY);
-	  //printf("Rec xMBEventQueue: %d\n", eQueue);
 		switch (eQueue)
     {
     case EV_MASTER_READY:
@@ -110,7 +107,7 @@ xMBMasterPortEventGet( int *eEvent )
  */
 void vMBMasterOsResInit( void )
 {
-	xMasterRunResQueue = xQueueCreate(1, sizeof(int));
+	//xMasterRunResQueue = xQueueCreate(1, sizeof(int));
 }
 
 /**
@@ -229,8 +226,9 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish( void )
 		int eQueue;  
 		eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
 	
-		xQueueReceive(xMBReqQueue, &eQueue, portMAX_DELAY);
-		//printf("Rec xMBReqQueue: %d\n", eQueue);
+		if(xQueueReceive(xMBReqQueue, &eQueue, 5000/portTICK_RATE_MS) != pdPASS)
+			return MB_MRE_TIMEDOUT;
+		
 		switch (eQueue)
     {
     case EV_MASTER_PROCESS_SUCESS:
