@@ -27,14 +27,14 @@
 #define DEFAULTAGENT "577a2c956097e90494be7fc7"
 #define DEFAULTTOKEN "GejGxXUnfRaITqQOeYtJFHOCcHPwxeGw"
 
-#define BUFSIZE		800
-#define RBUFSIZE	400
+#define PUB_TYPE_AGENT 								0
+#define PUB_TYPE_TEST									1
+#define PUB_TYPE_INV 									2
+#define PUB_TYPE_MET 									3
 
 int gEInterval=300, gFinish=0;
-int gPort=DEFAULTPORT;
-char gHost[MAXFILENAME+1];
-char gAgent[MAXFILENAME+1], gToken[MAXFILENAME+1];
-char gTopicUp[MAXFILENAME+1], gTopicDown[MAXFILENAME+1];
+const char *gTopicUp = "jsonUp";
+char gTopicDown[MAXFILENAME+1];
 
 xQueueHandle xPubQueue;
 
@@ -51,18 +51,17 @@ int publishData(jNet *pJnet, int upstreamId)
     root = cJSON_CreateArray();
     switch(upstreamId)
     {
-        case 0:
+        case PUB_TYPE_AGENT:
         cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-        cJSON_AddStringToObject(son1, "hwid", gAgent);
         cJSON_AddStringToObject(son1, "type", "AGENT");
         cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
         cJSON_AddNumberToObject(son2, "interval", gEInterval);					
         break;
 				
-        case 1:
+        case PUB_TYPE_TEST:
         cJSON_AddItemToArray(root, son1=cJSON_CreateObject());	
-        cJSON_AddStringToObject(son1, "hwid", gAgent);
-        cJSON_AddStringToObject(son1, "type", "AGENT");
+        cJSON_AddStringToObject(son1, "dsn", "dsntest001");
+        cJSON_AddStringToObject(son1, "type", "TYPE_TEST");
         cJSON_AddItemToObject(son1, "values", son2=cJSON_CreateObject());	
         cJSON_AddStringToObject(son2, "testMessage", "Hello J1ST!");
         break;
@@ -74,25 +73,77 @@ int publishData(jNet *pJnet, int upstreamId)
     rc = jNetPublishT(pJnet, gTopicUp, out);
     if(rc == 0)
         printf("Published on topic %s: %s, result %d.\n", gTopicUp, out, rc);
+		
+    /*Need to match the cJson_free(cJson.c)*/
     free(out);
+    out = NULL;	
     return rc;
+}
+
+void UpdateInterval(int newInterval)
+{
+    int sock = PUB_TYPE_AGENT;
+    if (newInterval > 0 && newInterval < 3000)
+    {
+        gEInterval = newInterval;
+        printf("UpdateInterval: %d.\n", gEInterval);
+        xQueueSendToBack(xPubQueue, &sock, 0);
+    }
+}
+
+void AnaInterval(cJSON *item)
+{
+    cJSON *value = cJSON_GetObjectItem(item, "sec");
+    if (value != NULL && value->type == cJSON_Number)
+    {
+        int interval  = (int)(value->valuedouble + 0.0000001);
+        printf("Rcvd: sec %d.\n", interval);
+        UpdateInterval(interval);
+    }
+}
+
+void CheckCmd(cJSON *root, const char *key, void (*func)(cJSON *))
+{
+    cJSON *item;
+
+    cJSON *cmdArray = cJSON_GetObjectItem(root, key);
+    if (cmdArray == NULL) return;
+        
+    cJSON_ArrayForEach(item, cmdArray)
+    {
+        cJSON *sub = cJSON_GetObjectItem(item, "hwid");
+        if (sub != NULL && sub->type == cJSON_String)
+            func(item);        
+    }
+}
+
+/*Analytical "Fn Code" definitions from developer console(developer.j1st.io)*/
+void ParseMsg(char *payload)
+{
+    cJSON * root = cJSON_Parse(payload);
+    if (!root) return;
+		/*"Fn Code" == SetInterval*/
+    CheckCmd(root, "SetInterval", AnaInterval);
+
+    if (root) cJSON_Delete(root);
 }
 
 void messageArrived(MessageData* data)
 {
-    printf("Message arrived on topic %.*s: %.*s\n", data->topicName->lenstring.len, data->topicName->lenstring.data,
-        data->message->payloadlen, data->message->payload);
+    MQTTMessage* message = data->message;
+    char *payload =  (char*)message->payload;
+		
+    //TODO: Safer
+    payload[(int)message->payloadlen] = 0;
+    printf("Message arrived on topic %.*s: %.*s\n", data->topicName->lenstring.len, data->topicName->lenstring.data, data->message->payloadlen, data->message->payload);
+
+    ParseMsg(payload);
 }
 
 void prvMQTTEchoTask(void *argu)
 {
     /* connect to developer.j1st.io, subscribe to a topic, send and receive messages regularly every 1 sec */
-    strcpy(gHost, DEFAULTHOST);
-    strcpy(gAgent, DEFAULTAGENT);
-    strcpy(gToken, DEFAULTTOKEN);
-		
-    sprintf(gTopicDown, "agents/%s/downstream", gAgent);
-    sprintf(gTopicUp, "agents/%s/upstream", gAgent);
+    sprintf(gTopicDown, "agents/%s/downstream", DEFAULTAGENT);
 	
     int rc;
     jNet * pJnet = jNetInit();
@@ -104,27 +155,27 @@ void prvMQTTEchoTask(void *argu)
 
     while(!gFinish)
     {
-        rc = jNetConnect(pJnet, gHost, gPort, gAgent, gToken);
+        rc = jNetConnect(pJnet, DEFAULTHOST, DEFAULTPORT, DEFAULTAGENT, DEFAULTTOKEN);
         if (rc != 0 ) 
         {
             /*rc: No IP address or stack not ready = -1, OKDONE = 0 , AGENT_ID & AGENT_TOKEN is authorized = 5*/
-            printf("Cannot connect to :%s, rc: %d. \n", gHost, rc);
+            printf("Cannot connect to :%s, rc: %d. \n", DEFAULTHOST, rc);
             vTaskDelay(1000);
             continue;
         }
-        printf("Connect to J1ST.IO server %s:%d succeeded.\n", gHost, gPort);
+        printf("Connect to J1ST.IO server %s:%d succeeded.\n", DEFAULTHOST, DEFAULTPORT);
     
         rc = jNetSubscribeT(pJnet, gTopicDown, QOS2, messageArrived);
         if (rc != 0) goto clean;
         printf("Subscribe the topic of \"%s\" result %d.\n", gTopicDown, rc);
 		
         if(publishData(pJnet, 1) != 0) goto clean;
-				xQueueSendToBack(xPubQueue, &rc, 0);
+        //xQueueSendToBack(xPubQueue, &rc, 0);
         
-				do
+        do
         {
             /*Demand sending data*/
-            short sock;
+            int sock;
             if (xQueueReceive(xPubQueue, &sock, 1) == pdPASS)
             {
                 printf("Rcvd: xPubQueue %d.\n", sock);
@@ -153,6 +204,6 @@ void vStartMQTTTasks(uint16_t usTaskStackSize, UBaseType_t uxTaskPriority)
         uxTaskPriority,    /* The priority assigned to the task suggestion is 3. */
         NULL);    /* The task handle is not used. */
 	
-    xPubQueue = xQueueCreate(6, 2);
+    xPubQueue = xQueueCreate(6, sizeof(int));
 }
 /*-----------------------------------------------------------*/

@@ -42,7 +42,7 @@
 /* Variables -----------------------------------------------------------------*/
 
 /* USER CODE BEGIN Variables */
-static unsigned short usTSHigh=0;
+
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -56,26 +56,24 @@ void configureTimerForRunTimeStats(void);
 unsigned long getRunTimeCounterValue(void);
 
 /* USER CODE BEGIN 1 */
-extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim5;
 /* Functions needed when configGENERATE_RUN_TIME_STATS is on */
 void configureTimerForRunTimeStats(void)
 {
-	__HAL_TIM_SetCounter(&htim7, 0);
-	__HAL_TIM_ENABLE(&htim7);	
+  //__HAL_TIM_CLEAR_IT(&htim5, TIM_IT_UPDATE);
+  //__HAL_TIM_ENABLE_IT(&htim5, TIM_IT_UPDATE);
+  __HAL_TIM_SetCounter(&htim5, 0);
+  __HAL_TIM_ENABLE(&htim5);
 }
 
 unsigned long getRunTimeCounterValue(void)
 {
-	unsigned int TS = (usTSHigh<<15);
-	return (TS | __HAL_TIM_GetCounter(&htim7));
+	return __HAL_TIM_GetCounter(&htim5);
 }
 /* USER CODE END 1 */
 
 /* USER CODE BEGIN Application */
-void AddTIM3Counter(void)
-{
-	usTSHigh++;
-}
+
 /* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -43,6 +43,7 @@
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim7;
 
 UART_HandleTypeDef huart1;
@@ -69,6 +70,7 @@ static void MX_TIM7_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_TIM5_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -110,6 +112,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_TIM4_Init();
   MX_USART1_UART_Init();
+  MX_TIM5_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_CalTick();
@@ -134,15 +137,15 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityLow, 0, 128);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityLow, 0, 192);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  xTaskCreate(vDaemonPrint, "DaemonPrint", 80, NULL, 2, &xPrnHandle);
-  xTaskCreate(vMQTTTask, "MQTT", 256, NULL, 2, &xMQTTHandle);
-  xTaskCreate(vDHTTask, "DHT11", 256, NULL, 2, &xDHTHandle);
-  xTaskCreate(vMBPTask, "Modbus", 96, NULL, 2, &xMBPHandle);
+  xTaskCreate(vDaemonPrint, "DaemonPrint", 96, NULL, 2, &xPrnHandle);
+  xTaskCreate(vMQTTTask, "MQTT", 288, NULL, 2, &xMQTTHandle);
+  xTaskCreate(vDHTTask, "DHT11", 192, NULL, 2, &xDHTHandle);
+  xTaskCreate(vMBPTask, "ModbusPoll", 96, NULL, 2, &xMBPHandle);
 	xTaskCreate(vTaskCmdAnalyze, "CmdAna", 128, NULL, 1, &xCmdAnalyzeHandle);
   /* USER CODE END RTOS_THREADS */
 
@@ -263,6 +266,38 @@ static void MX_TIM4_Init(void)
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
+
+/* TIM5 init function */
+static void MX_TIM5_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 5999;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 4294967295;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
@@ -442,6 +477,8 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
 
   /* USER CODE BEGIN 5 */
+	uint32_t phyreg = 0U;
+	
 	__HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
   Print("\n\nEthernet MB bridge, build ");	
   sprintf(gTmp, "%x\n%s", __BUILD_, PROMPT); 
@@ -455,7 +492,14 @@ void StartDefaultTask(void const * argument)
     //sprintf(gTmp, "RTOS FreeHeapSize %d\n",xPortGetFreeHeapSize());
     //Print(gTmp);
 		ReadInvSN();
+		HAL_ETH_ReadPHYRegister(&heth, PHY_BSR, &phyreg);
+    if (((phyreg & PHY_LINKED_STATUS) != PHY_LINKED_STATUS))
+		{
+      sprintf(gTmp, "PHY_LINKED_STATUS: %d\n", phyreg);
+      Print(gTmp);
+		}
     osDelay(10000);
+		
   }
   /* USER CODE END 5 */ 
 }

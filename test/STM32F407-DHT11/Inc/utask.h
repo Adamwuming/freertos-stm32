@@ -5,8 +5,17 @@
 #include "cmsis_os.h"
 
 /* ----------------------- Defines ------------------------------------------*/
-#define __BUILD_	0x16090913
+#define __BUILD_	0x160920
 #define PROMPT		"\n> "
+
+typedef enum {
+	BAUD9600 = 0,
+	NAUD14400,
+	BAUD19200,
+	BAUD38400,
+	BAUD57600,
+	BAUD115200,
+} BaudEnum;
 
 /*Json payload type*/
 #define PUB_TYPE_AGENT                      0

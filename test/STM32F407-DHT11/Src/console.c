@@ -221,42 +221,46 @@ void GetTaskState(int argc, void *cmd_arg)
 {  
 	const char task_state[]={'r','R','B','S','D'};
 	volatile UBaseType_t uxArraySize, x;  
-	uint32_t ulTotalRunTime;
-	//, ulStatsAsPercentage;  
+	uint32_t ulTotalRunTime, ulStatsAsPercentage;  
    
 	uxArraySize = uxTaskGetNumberOfTasks();  
 	if (uxArraySize > MAX_TASK_NUM) 
 		Print("Too many active tasks!\n");  
 
 	uxArraySize = uxTaskGetSystemState(pxTaskStatusArray, uxArraySize, &ulTotalRunTime );  
-   
-#if (configGENERATE_RUN_TIME_STATS==1)  
-    
-	Print("Task name Status ID Prior Stack CPU usage\n");  
+  
+	/* For percentage calculations. */
+	ulTotalRunTime /= 100UL;
+
+	#if (configGENERATE_RUN_TIME_STATS==1)  
+  
+	Print("Task name  Status ID Prior Stack CPU usage\n");  
 	osDelay(10);
 	if ( ulTotalRunTime > 0 )  
 	{  
 		for( x = 0; x < uxArraySize; x++ )  
 		{  
-			/*
-			ulStatsAsPercentage = (uint64_t)(pxTaskStatusArray[x].ulRunTimeCounter)*100 / ulTotalRunTime;  
+			/* What percentage of the total run time has the task used?
+			This will always be rounded down to the nearest integer.
+			ulTotalRunTimeDiv100 has already been divided by 100. */
+			
+			ulStatsAsPercentage = (uint64_t)(pxTaskStatusArray[x].ulRunTimeCounter) / ulTotalRunTime;  
 			if ( ulStatsAsPercentage > 0UL )  
-				sprintf(gTmp, "%-12s%-6c%-4ld%-5ld%-6d%d%%", 
+				sprintf(gTmp, "%-13s%-6c%-4ld%-5ld%-6d%d%%", 
 							 pxTaskStatusArray[x].pcTaskName, task_state[pxTaskStatusArray[x].eCurrentState], 
 							 pxTaskStatusArray[x].xTaskNumber, pxTaskStatusArray[x].uxCurrentPriority,
 							 pxTaskStatusArray[x].usStackHighWaterMark, ulStatsAsPercentage);  
-            else  
-			*/
-                sprintf(gTmp, "%-12s%-6c%-4ld%-5ld%-6dt<1%%",
-							 pxTaskStatusArray[x].pcTaskName, task_state[pxTaskStatusArray[x].eCurrentState],
-							 pxTaskStatusArray[x].xTaskNumber, pxTaskStatusArray[x].uxCurrentPriority,
-							 pxTaskStatusArray[x].usStackHighWaterMark); 
+			else
+				sprintf(gTmp, "%-13s%-6c%-4ld%-5ld%-6dt<1%%",
+			        pxTaskStatusArray[x].pcTaskName, task_state[pxTaskStatusArray[x].eCurrentState],
+			        pxTaskStatusArray[x].xTaskNumber, pxTaskStatusArray[x].uxCurrentPriority,
+			        pxTaskStatusArray[x].usStackHighWaterMark); 
 			Print(gTmp);
 			Print("\n");
 			osDelay(10);
 		}  
-    }  
-    //Print("    run Ready Blocked Suspended Deleted\n"); 
+	}  
+	//Print("    run Ready Blocked Suspended Deleted\n"); 
 	//osDelay(10);
 	sprintf(gTmp, "Heap: %d/%d\n",  xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize());
 	Print(gTmp);
