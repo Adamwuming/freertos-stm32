@@ -187,7 +187,7 @@ void CheckCmd(cJSON *root, const char *key, void (*func)(cJSON *))
         
   cJSON_ArrayForEach(item, cmdArray)
   {
-    //cJSON *sub = cJSON_GetObjectItem(item, "hwid");
+    //cJSON *sub = cJSON_GetObjectItem(item, "dsn");
     //if (sub != NULL && sub->type == cJSON_String && !strcmp(DEFAULTAGENT, sub->valuestring))
       func(item);        
   }

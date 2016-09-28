@@ -4,22 +4,6 @@
 extern SPI_HandleTypeDef hspi2;
 
 /**
-  * 函数功能: 从串行Flash读取一个字节数据
-  * 输入参数: 无
-  * 返 回 值: uint8_t：读取到的数据
-  * 说    明：This function must be used only if the Start_Read_Sequence
-  *           function has been previously called.
-  */
-uint8_t SPI_FLASH_ReadByte(void)
-{
-  uint8_t d_read,d_send=Dummy_Byte;
-  if(HAL_SPI_TransmitReceive(&hspi2,&d_send,&d_read,1,0xFFFFFF)!=HAL_OK)
-    d_read=Dummy_Byte;
-  
-  return d_read;    
-}
-
-/**
   * 函数功能: 往串行Flash读取写入一个字节数据并接收一个字节数据
   * 输入参数: byte：待发送数据
   * 返 回 值: uint8_t：接收到的数据

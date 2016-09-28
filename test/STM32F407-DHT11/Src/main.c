@@ -41,6 +41,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi2;
+SPI_HandleTypeDef hspi3;
+DMA_HandleTypeDef hdma_spi3_rx;
+DMA_HandleTypeDef hdma_spi3_tx;
 
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
@@ -55,7 +58,8 @@ osThreadId defaultTaskHandle;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-xTaskHandle xPrnHandle, xMQTTHandle, xDHTHandle, xMBPHandle, xCmdAnalyzeHandle;
+xTaskHandle xPrnHandle, xMQTTHandle, xDHTHandle, xMBPHandle, \
+  xCmdAnalyzeHandle, xRFIDPollHandle;
 xQueueHandle xPubQueue;
 xSemaphoreHandle xPrnDMAMutex;
 /* USER CODE END PV */
@@ -71,6 +75,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM5_Init(void);
+static void MX_SPI3_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -79,7 +84,8 @@ extern void vDaemonPrint(void *);
 extern void vMQTTTask(void *);
 extern void vDHTTask(void *);
 extern void vMBPTask(void *);
-extern void vTaskCmdAnalyze(void *);
+extern void vCmdAnalyzeTask(void *);
+extern void vRFIDPollTask(void *);
 
 extern void SPI_Flash_WakeUp(void);
 extern void ReadInvSN(void);
@@ -113,6 +119,7 @@ int main(void)
   MX_TIM4_Init();
   MX_USART1_UART_Init();
   MX_TIM5_Init();
+  MX_SPI3_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_CalTick();
@@ -137,7 +144,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityLow, 0, 192);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityLow, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -146,7 +153,8 @@ int main(void)
   xTaskCreate(vMQTTTask, "MQTT", 288, NULL, 2, &xMQTTHandle);
   xTaskCreate(vDHTTask, "DHT11", 192, NULL, 2, &xDHTHandle);
   xTaskCreate(vMBPTask, "ModbusPoll", 96, NULL, 2, &xMBPHandle);
-	xTaskCreate(vTaskCmdAnalyze, "CmdAna", 128, NULL, 1, &xCmdAnalyzeHandle);
+	xTaskCreate(vCmdAnalyzeTask, "CmdAna", 128, NULL, 1, &xCmdAnalyzeHandle);
+	xTaskCreate(vRFIDPollTask, "RFIDpoll", 128, NULL, 2, &xRFIDPollHandle);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -234,6 +242,29 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi2.Init.CRCPolynomial = 10;
   if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
+
+/* SPI3 init function */
+static void MX_SPI3_Init(void)
+{
+
+  hspi3.Instance = SPI3;
+  hspi3.Init.Mode = SPI_MODE_MASTER;
+  hspi3.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi3.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi3.Init.NSS = SPI_NSS_SOFT;
+  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi3.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -376,9 +407,15 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
   /* DMA1_Stream3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   /* DMA2_Stream7_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
@@ -432,16 +469,24 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(Flash_CS_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED1_Pin LED2_Pin LED3_Pin */
-  GPIO_InitStruct.Pin = LED1_Pin|LED2_Pin|LED3_Pin;
+  /*Configure GPIO pins : LED1_Pin LED2_Pin LED3_Pin RFID_RST_Pin 
+                           RFID_MOSI_Pin RFID_CLK_Pin RFID_SDA_Pin */
+  GPIO_InitStruct.Pin = LED1_Pin|LED2_Pin|LED3_Pin|RFID_RST_Pin 
+                          |RFID_MOSI_Pin|RFID_CLK_Pin|RFID_SDA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : IO1_Pin IO2_Pin IO3_Pin IO4_Pin 
+  /*Configure GPIO pin : RFID_MISO_Pin */
+  GPIO_InitStruct.Pin = RFID_MISO_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(RFID_MISO_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : IO1_Pin IO2_Pin IO3_Pin PD13 
                            IO5_Pin IO6_Pin IO7_Pin IO8_Pin */
-  GPIO_InitStruct.Pin = IO1_Pin|IO2_Pin|IO3_Pin|IO4_Pin 
+  GPIO_InitStruct.Pin = IO1_Pin|IO2_Pin|IO3_Pin|GPIO_PIN_13 
                           |IO5_Pin|IO6_Pin|IO7_Pin|IO8_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -458,10 +503,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(Flash_CS_GPIO_Port, Flash_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, LED1_Pin|LED2_Pin|LED3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, LED1_Pin|LED2_Pin|LED3_Pin|RFID_RST_Pin 
+                          |RFID_MOSI_Pin|RFID_CLK_Pin|RFID_SDA_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, IO1_Pin|IO2_Pin|IO3_Pin|IO4_Pin 
+  HAL_GPIO_WritePin(GPIOD, IO1_Pin|IO2_Pin|IO3_Pin|GPIO_PIN_13 
                           |IO5_Pin|IO6_Pin|IO7_Pin|IO8_Pin, GPIO_PIN_RESET);
 
 }

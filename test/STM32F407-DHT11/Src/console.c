@@ -273,7 +273,7 @@ void ProcessGPS(cmd_analyze_struct *cmd)
 	Print(PROMPT);
 }
   
-void vTaskCmdAnalyze(void *pvParameters)
+void vCmdAnalyzeTask(void *pvParameters)
 {
 	uint32_t i;
 	int32_t rec_arg_num;

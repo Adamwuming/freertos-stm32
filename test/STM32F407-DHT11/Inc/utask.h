@@ -3,10 +3,16 @@
 
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
+#define GPIO_MFRC 1
+//#define SPI_MFRC 1
 
 /* ----------------------- Defines ------------------------------------------*/
 #define __BUILD_	0x160920
 #define PROMPT		"\n> "
+
+#define GPIO_SET(port,pin) 		(port->BSRR = pin)
+#define GPIO_CLR(port,pin) 		(port->BSRR = pin<< 16U)
+#define GPIO_STAT(port,pin)   (!!(port->IDR & pin))
 
 typedef enum {
 	BAUD9600 = 0,
@@ -25,7 +31,7 @@ typedef enum {
 
 /*FreeRTOS*/
 extern xTaskHandle xPrnHandle, xMQTTHandle, xDHTHandle, xMBPHandle, \
-	xCmdAnalyzeHandle;
+	xCmdAnalyzeHandle, xRFIDPollHandle;
 extern xQueueHandle xPubQueue;
 extern xSemaphoreHandle xPrnDMAMutex;
 
@@ -80,6 +86,4 @@ extern int WriteDHTFlash(unsigned char *pTxData);
 extern int ReadDHTFlash(unsigned char *pRxData);
 
 /*INV Flash*/
-
-
 #endif
